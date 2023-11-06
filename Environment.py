@@ -196,6 +196,9 @@ class Environment:
         # END TESTING                                                        #
         ######################################################################
         
+        ################################################################################################################
+        # Creature positions are updated here                                                                          #
+        ################################################################################################################
         for creature, inputs in zip(self.creatures, all_inputs):
             creature.update_rotation_speed(-inputs[1])  # Negated because the screen is flipped
             creature.rotate(delta_time)
@@ -205,6 +208,8 @@ class Environment:
             creature.update_position(delta_time)
             if main.DRAW:
                 creature.draw(screen)
+        ################################################################################################################
+        ################################################################################################################
         
         self.time += delta_time
 

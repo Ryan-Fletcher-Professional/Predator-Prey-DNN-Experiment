@@ -3,6 +3,7 @@ THIS FILE WRITTEN BY RYAN FLETCHER AND
 """
 
 import numpy as np
+import main
 
 
 class CreatureNetwork:
@@ -16,3 +17,8 @@ class CreatureNetwork:
         """
         # TODO : NN STUFF HERE
         return [[0.001, 0.000], np.pi / 2]
+
+
+class FullyConnected(CreatureNetwork):
+    def __init__(self, hyperparameters):
+        super().__init__(hyperparameters)
