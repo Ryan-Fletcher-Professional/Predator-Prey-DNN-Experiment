@@ -2,8 +2,15 @@
 THIS FILE WRITTEN BY RYAN FLETCHER AND
 """
 
-import numpy as np
-import main
+import torch
+import Globals
+
+dtype = Globals.DTYPE # we will be using float throughout this tutorial
+
+if Globals.USE_GPU and torch.cuda.is_available():
+    device = torch.device('cuda')
+else:
+    device = torch.device('cpu')
 
 
 class CreatureNetwork:
@@ -15,10 +22,59 @@ class CreatureNetwork:
         :param state_info: See Environment.get_state_info() return specification.
         :return: [ 2d-array : [float forward force, float rightwards force], float clockwise rotation in [0,2pi) ]
         """
-        # TODO : NN STUFF HERE
-        return [[0.001, 0.000], np.pi / 2]
+        # Transform into a 1d array with environment info first then info about all other relevent creatures.
+        input = self.transform(state_info)
+        self.train_part34(self.model, self.optimizer, state_info, input)
+        self.model.eval()
+        scores = None
+        with torch.no_grad():
+            scores = self.model(input)            
+        return [[scores[0], scores[1]], scores[2]]
+    
+    def train_part34(self, model, optimizer, state_info, input):
+        """
+        Train a model on CIFAR-10 using the PyTorch Module API.
+        
+        Inputs:
+        - model: A PyTorch Module giving the model to train.
+        - optimizer: An Optimizer object we will use to train the model
+        
+        Returns: Nothing, but prints model accuracies during training.
+        CURRENTLY STOLEN FROM HW2
+        """
+        model = model.to(device=device)  # move the model parameters to CPU/GPU
+        model.train()  # put model to training mode
+        
+        scores = model(input)
+        loss = self.loss(state_info)
+
+        # Zero out all of the gradients for the variables which the optimizer
+        # will update.
+        optimizer.zero_grad()
+
+        # This is the backwards pass: compute the gradient of the loss with
+        # respect to each  parameter of the model.
+        loss.backward()
+
+        # Actually update the parameters of the model using the gradients
+        # computed by the backwards pass.
+        optimizer.step()
+
+        # if t % print_every == 0:
+        #     print('Iteration %d, loss = %.4f' % (t, loss.item()))
+        #     check_accuracy_part34(loader_val, model)
+        #     print()
 
 
 class FullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
+        dims = hyperparameters["dimensions"]
+        self.model = torch.nn.Sequential(
+            FullyConnected(dims[0], dims[1]),
+            FullyConnected(dims[1], dims[2]),
+            FullyConnected(dims[2], dims[3]),
+            FullyConnected(dims[3], dims[4])
+        )
+        self.optimizer = torch.optim.Adam(self.model.parameters())
+        

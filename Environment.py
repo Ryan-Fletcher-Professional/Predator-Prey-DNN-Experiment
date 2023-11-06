@@ -5,13 +5,11 @@ THIS FILE WRITTEN BY RYAN FLETCHER
 import math
 import numpy as np
 import pygame
+import Globals
 import main
 
-PREY = main.PREY
-PREDATOR = main.PREDATOR
 
-
-def angle_to_vec(angle, DTYPE=main.DTYPE):
+def angle_to_vec(angle, DTYPE=Globals.DTYPE):
     return np.array([math.cos(angle), math.sin(angle)], dtype=DTYPE)
 
 
@@ -22,7 +20,7 @@ def normalize(v):
     return v / norm
 
 
-def angle_between(v1, v2, DTYPE=main.DTYPE):
+def angle_between(v1, v2, DTYPE=Globals.DTYPE):
     """
     Got this from StackOverflow
     """
@@ -32,7 +30,7 @@ def angle_between(v1, v2, DTYPE=main.DTYPE):
     return angle
 
 
-def rotate_vector(v, angle, DTYPE=main.DTYPE):
+def rotate_vector(v, angle, DTYPE=Globals.DTYPE):
     rotation_matrix = np.array([
         [np.cos(angle, dtype=DTYPE), -np.sin(angle, dtype=DTYPE)],
         [np.sin(angle, dtype=DTYPE), np.cos(angle, dtype=DTYPE)]
@@ -40,7 +38,7 @@ def rotate_vector(v, angle, DTYPE=main.DTYPE):
     return rotation_matrix @ v
 
 
-def copy_dir(from_vec, to_vec, a=None, DTYPE=main.DTYPE):
+def copy_dir(from_vec, to_vec, a=None, DTYPE=Globals.DTYPE):
     if a is not None:
         angle = a
     else:
@@ -125,12 +123,12 @@ class Creature:
         self.acceleration = 0
     
     def draw(self, screen):
-        pygame.draw.circle(screen, main.WHITE, self.position.astype(int), self.size)
+        pygame.draw.circle(screen, Globals.WHITE, self.position.astype(int), self.size)
         bulge_radius = 10
         bulge_position = self.position + angle_to_vec(self.direction) * bulge_radius
         # Draw the bulge as a smaller circle or an arc
         bulge_size = 4
-        pygame.draw.circle(screen, main.WHITE, bulge_position.astype(int), bulge_size)
+        pygame.draw.circle(screen, Globals.WHITE, bulge_position.astype(int), bulge_size)
         for ray in self.rays:
             ray.cast(screen, self.sight_range)
 
@@ -153,14 +151,14 @@ class Environment:
     def step(self, delta_time, screen=None):
         for creature in self.creatures:
             if creature.energy <= 0:
-                print("Creature " + creature.id + " ran " + main.OUT_OF_ENERGY)
-                return "Creature " + creature.id + " ran " + main.OUT_OF_ENERGY
+                print("Creature " + creature.id + " ran " + Globals.OUT_OF_ENERGY)
+                return "Creature " + creature.id + " ran " + Globals.OUT_OF_ENERGY
                 
         # Specified for one prey and one predator. CHANGE FOR EXPERIMENTS!
         if np.linalg.norm(self.creatures[0].position - self.creatures[1].position) < \
-                         ((1 - self.EAT_EPSILON) * (main.PREY_ATTRS["size"] + main.PREDATOR_ATTRS["size"])):
+                         ((1 - self.EAT_EPSILON) * (Globals.PREY_ATTRS["size"] + Globals.PREDATOR_ATTRS["size"])):
             print("PREY EATEN")
-            return main.PREY_EATEN
+            return Globals.PREY_EATEN
         
         all_inputs = [creature.model.get_inputs() for creature in self.creatures]
         
@@ -180,7 +178,7 @@ class Environment:
         if keys[pygame.K_SPACE]:
             self.creatures[0].velocity = np.array([0.0, 0.0], dtype=self.DTYPE)
         override = normalize(override)
-        if np.linalg.norm(override) > 0 or main.ALWAYS_OVERRIDE_PREY_MOVEMENT:
+        if np.linalg.norm(override) > 0 or Globals.ALWAYS_OVERRIDE_PREY_MOVEMENT:
             all_inputs[0][0] = override.tolist()
         override = 0.0
         if keys[pygame.K_LEFT]:
@@ -189,7 +187,7 @@ class Environment:
             override += -2 * np.pi * (1 / 2) / 1000
         if keys[pygame.K_DOWN]:
             override = -all_inputs[0][1]
-        if main.ALWAYS_OVERRIDE_PREY_MOVEMENT:
+        if Globals.ALWAYS_OVERRIDE_PREY_MOVEMENT:
             all_inputs[0][1] = 0
         all_inputs[0][1] += override
         ######################################################################
@@ -206,14 +204,14 @@ class Environment:
             creature.apply_force(np.array(inputs[0], dtype=self.DTYPE))
             creature.update_velocity(delta_time)
             creature.update_position(delta_time)
-            if main.DRAW:
+            if Globals.DRAW:
                 creature.draw(screen)
         ################################################################################################################
         ################################################################################################################
         
         self.time += delta_time
 
-        return main.SUCCESSFUL_STEP
+        return Globals.SUCCESSFUL_STEP
     
     def get_state_info(self):
         """
@@ -227,7 +225,8 @@ class Environment:
                 "position"  : creature.position,
                 "direction" : creature.direction,
                 "speed"     : np.linalg.norm(creature.velocity),
-                "id"        : creature.id
+                "id"        : creature.id,
+                "energy"    : creature.energy
             })
         state_info["creature_states"] = creature_states
         state_info["time"] = self.time
@@ -242,4 +241,4 @@ class Ray:
         
     def cast(self, screen, length):
         end_point = self.position + angle_to_vec(self.angle) * length  # Arbitrary length
-        pygame.draw.line(screen, main.WHITE, self.position, end_point, 1)
+        pygame.draw.line(screen, Globals.WHITE, self.position, end_point, 1)
