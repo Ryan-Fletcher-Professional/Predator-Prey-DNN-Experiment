@@ -15,7 +15,8 @@ else:
 
 class CreatureNetwork:
     def __init__(self, hyperparameters):
-        pass
+        self.model = None
+        self.optimizer = None
 
     def get_inputs(self, state_info):
         """
@@ -24,12 +25,12 @@ class CreatureNetwork:
         """
         # Transform into a 1d array with environment info first then info about all other relevent creatures.
         input = self.transform(state_info)
-        self.train_part34(self.model, self.optimizer, state_info, input)
-        self.model.eval()
-        scores = None
-        with torch.no_grad():
-            scores = self.model(input)            
-        return [[scores[0], scores[1]], scores[2]]
+        scores = self.train_part34(self.model, self.optimizer, state_info, input)
+        # self.model.eval()
+        # scores = None
+        # with torch.no_grad():
+        #     scores = self.model(input)            
+        return [[scores[0].item(), scores[1].item()], scores[2].item()]
     
     def train_part34(self, model, optimizer, state_info, input):
         """
@@ -42,8 +43,8 @@ class CreatureNetwork:
         Returns: Nothing, but prints model accuracies during training.
         CURRENTLY STOLEN FROM HW2
         """
-        model = model.to(device=device)  # move the model parameters to CPU/GPU
         model.train()  # put model to training mode
+        model = model.to(device=device)  # move the model parameters to CPU/GPU
         
         scores = model(input)
         loss = self.loss(state_info)
@@ -64,17 +65,19 @@ class CreatureNetwork:
         #     print('Iteration %d, loss = %.4f' % (t, loss.item()))
         #     check_accuracy_part34(loader_val, model)
         #     print()
+        
+        return scores
 
 
-class FullyConnected(CreatureNetwork):
+class CreatureFullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
         dims = hyperparameters["dimensions"]
         self.model = torch.nn.Sequential(
-            FullyConnected(dims[0], dims[1]),
-            FullyConnected(dims[1], dims[2]),
-            FullyConnected(dims[2], dims[3]),
-            FullyConnected(dims[3], dims[4])
+            torch.nn.Linear(dims[0], dims[1]),
+            torch.nn.Linear(dims[1], dims[2]),
+            torch.nn.Linear(dims[2], dims[3]),
+            torch.nn.Linear(dims[3], dims[4])
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
         

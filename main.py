@@ -26,10 +26,11 @@ def get_id():
 class Model:
     def __init__(self, creature_type, attrs):
         self.type = creature_type
+        new_id = get_id()
         if creature_type == Globals.PREY:
-            self.NN = PreyNetwork.PreyNetwork(Globals.PREY_NETWORK_HYPERPARAMETERS)
+            self.NN = PreyNetwork.PreyNetwork(Globals.PREY_NETWORK_HYPERPARAMETERS, new_id)
         elif creature_type == Globals.PREDATOR:
-            self.NN = PredatorNetwork.PredatorNetwork(Globals.PREDATOR_NETWORK_HYPERPARAMETERS)
+            self.NN = PredatorNetwork.PredatorNetwork(Globals.PREDATOR_NETWORK_HYPERPARAMETERS, new_id)
         else:
             self.NN = None
         self.sight_range = attrs["sight_range"]
@@ -51,16 +52,17 @@ class Model:
         creature_states = state_info["creature_states"]
         relative_creature_states = []
         for state in creature_states:
-            if state["id"] != self.creature.id:
-                distance = np.linalg.norm(self.creature.position - state["position"])
-                relative_creature_states.append({
-                    "type"      : state["type"],
-                    "distance"  : distance,
-                    "speed"     : state["speed"] * math.pow(math.e,
-                                                            -SPEED_ESTIMATION_DECAY *
-                                                            (distance - self.creature.sight_range)),
-                    "id"        : state["id"]
-                })
+            distance = np.linalg.norm(self.creature.position - state["position"])
+            relative_creature_states.append({
+                "type"      : state["type"],
+                "distance"  : distance,
+                "speed"     : state["speed"] * math.pow(math.e,
+                                                        -SPEED_ESTIMATION_DECAY *
+                                                        (distance - self.creature.sight_range)),
+                "id"        : state["id"],
+                "energy"    : state["energy"]
+            })
+        relative_state_info["creature_states"] = relative_creature_states
         return self.NN.get_inputs(relative_state_info)
 
 
@@ -74,6 +76,9 @@ def main():
     
     running = True
     
+    # Specified for one prey and one predator. CHANGE FOR EXPERIMENTS!
+    Globals.PREY_NETWORK_HYPERPARAMETERS["dimensions"][0] = 7
+    Globals.PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"][0] = 7
     models = [(Globals.PREY_PARAMS, Model(Globals.PREY, Globals.PREY_ATTRS)), (Globals.PREDATOR_PARAMS, Model(Globals.PREDATOR, Globals.PREDATOR_ATTRS))]
     
     env = Environment.Environment(Globals.ENVIRONMENT_PARAMETERS, models)

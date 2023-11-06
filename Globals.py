@@ -2,9 +2,9 @@ import numpy as np
 
 DTYPE = np.float64
 DRAW = True
-ALWAYS_OVERRIDE_PREY_MOVEMENT = True
-PREY = "PREY"
-PREDATOR = "PREDATOR"
+ALWAYS_OVERRIDE_PREY_MOVEMENT = False
+PREY = -1.0
+PREDATOR = 1.0
 MAX_TPS = 60  # TODO: Should be increased to maximum stable value for experiments
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -19,6 +19,7 @@ SUCCESSFUL_STEP = "success"
 RECIPROCAL_MODE = "reciprocal"
 SUBTRACT_MODE = "subtract"
 USE_GPU = False
+REFERENCE_ANGLE = [1.0, 0.0]
 
 # Constants and globals
 # <>_ATTRS = {
@@ -90,10 +91,11 @@ PREDATOR_PARAMS = {
 }
 
 PREY_NETWORK_HYPERPARAMETERS = {
-    "loss_mode" : SUBTRACT_MODE,
+    "dimensions" : [-1, 10, 10, 10, 4],
+    "loss_mode"  : SUBTRACT_MODE,
 }
 PREDATOR_NETWORK_HYPERPARAMETERS = {
-
+    "dimensions" : [-1, 10, 10, 10, 4]
 }
 
 # ENVIRONMENT_PARAMETERS = {

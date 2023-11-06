@@ -43,7 +43,7 @@ def copy_dir(from_vec, to_vec, a=None, DTYPE=Globals.DTYPE):
         angle = a
     else:
         b = normalize(from_vec)
-        angle = angle_between(np.array([1.0, 0.0], dtype=DTYPE), b)
+        angle = angle_between(np.array(Globals.REFERENCE_ANGLE, dtype=DTYPE), b)
     return rotate_vector(to_vec, angle)
 
 
@@ -143,7 +143,7 @@ class Environment:
         self.creatures = []
         self.time = 0.0
         for model in models:
-            self.creatures.append(Creature(model[0], model[1]))
+            self.creatures.append(Creature(model[0], model[1], creature_id=model[1].NN.id))
         for creature in self.creatures:
             creature.model.creature = creature
             creature.model.environment = self
