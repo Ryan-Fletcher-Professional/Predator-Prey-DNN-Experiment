@@ -153,7 +153,7 @@ class Environment:
     def step(self, delta_time, screen=None):
         for creature in self.creatures:
             if creature.energy <= 0:
-                print("Creature " + str(creature.id) + "ran out of energy.")
+                print("Creature " + creature.id + " ran " + main.OUT_OF_ENERGY)
                 return "Creature " + creature.id + " ran " + main.OUT_OF_ENERGY
                 
         # Specified for one prey and one predator. CHANGE FOR EXPERIMENTS!

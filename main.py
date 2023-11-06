@@ -7,13 +7,13 @@ import numpy as np
 import math
 # from multiprocessing import Process  # Interferes with PyGame. Use when not drawing?
 # import time
+DTYPE = np.float64
 import Environment
 import PreyNetwork
 import PredatorNetwork
 
 DRAW = True
 ALWAYS_OVERRIDE_PREY_MOVEMENT = True
-DTYPE = np.float64
 
 # Constants and globals
 # <>_ATTRS = {
