@@ -51,32 +51,17 @@ class Creature:
         self.max_rotation_speed = attrs["max_rotate_speed"]
         self.initial_direction = params["initial_direction"]
         self.direction = self.initial_direction
-        self.energy = params["initial_energy"]
+        self.initial_energy = params["initial_energy"]
+        self.energy = self.initial_energy
         self.force_energy_quotient = attrs["force_energy_quotient"]
         self.rotation_speed = 0.0
+        self.old_rotation_speed = 0.0
+        self.stun = 0.0
         self.rotation_energy_quotient = attrs["rotation_energy_quotient"]
         self.rays = [Ray(self.position, angle) for angle in np.linspace(-(self.fov / 2) * 2 * np.pi,
                                                                         (self.fov / 2) * 2 * np.pi,
                                                                         num=attrs["num_rays"], dtype=self.DTYPE)]
         self.model = model
-    
-    def apply_force(self, force):
-        """
-        :param force: 2d-array : [ float forward force, float rightward force ]
-        """
-        f = np.clip(force, [-self.max_backward_force, -self.max_sideways_force],
-                    [self.max_forward_force, self.max_sideways_force], dtype=self.DTYPE)
-        self.energy -= np.linalg.norm(f) * self.force_energy_quotient
-        self.acceleration += copy_dir(None, f / self.mass, a=self.direction)
-    
-    def update_velocity(self, delta_time):
-        """
-        :param delta_time: float milliseconds
-        """
-        self.velocity += self.acceleration * delta_time
-        velocity_magnitude = np.linalg.norm(self.velocity) / delta_time
-        if velocity_magnitude > self.max_velocity:
-            self.velocity *= self.max_velocity / velocity_magnitude
     
     def update_rotation_speed(self, speed):
         """
@@ -90,10 +75,58 @@ class Creature:
         """
         :param delta_time: float milliseconds
         """
-        self.energy -= abs(self.rotation_speed) * delta_time * self.rotation_energy_quotient
+        energy_expenditure = abs(self.rotation_speed) * delta_time * self.rotation_energy_quotient
+        # If creature tries to move when its energy is too low, it loses all its energy, can't move the way it wants, and is briefly stunned.
+        if self.energy < energy_expenditure:
+            energy_expenditure = self.energy
+            self.rotation_speed = 0.0
+            self.stun += STUN_TICK_TIME
+        elif (energy_expenditure > 0.0) and (self.stun > 0.0):
+            energy_expenditure = self.energy
+            self.rotation_speed = 0.0
+            self.stun += STUN_TICK_TIME * STUN_IGNORE_PUNISHMENT_QUOTIENT
+        elif energy_expenditure == 0.0:
+            self.stun = max(0, self.stun - delta_time)
+            self.energy = min(self.initial_energy, self.energy + (abs(self.max_rotation_speed) * delta_time * self.rotation_energy_quotient))
+        self.energy -= energy_expenditure
         for ray in self.rays:
             ray.angle = (ray.angle + (self.rotation_speed * delta_time)) % (2 * np.pi)
         self.direction = (self.direction + (self.rotation_speed * delta_time)) % (2 * np.pi)
+    
+    def apply_force(self, force, delta_time, self_motivated=True):
+        """
+        :param force: 2d-array : [ float forward force, float rightward force ]
+        """
+        f = force
+        if self_motivated:
+            f = np.clip(force, [-self.max_backward_force, -self.max_sideways_force],
+                    [self.max_forward_force, self.max_sideways_force], dtype=self.DTYPE)
+            energy_expenditure = np.linalg.norm(f) * self.force_energy_quotient
+            # If creature tries to move when its energy is too low, it loses all its energy, can't move the way it wants, and is briefly stunned.
+            if self.energy < energy_expenditure:
+                energy_expenditure = self.energy
+                self.rotation_speed = 0.0
+                self.stun += STUN_TICK_TIME
+            elif (energy_expenditure > 0.0) and (self.stun > 0.0):
+                energy_expenditure = self.energy
+                self.rotation_speed = 0.0
+                self.stun += STUN_TICK_TIME * STUN_IGNORE_PUNISHMENT_QUOTIENT
+            elif energy_expenditure == 0.0:
+                self.stun = max(0, self.stun - delta_time)
+                self.energy = min(self.initial_energy, self.energy + (np.linalg.norm(np.array([max(self.max_forward_force, self.max_backward_force),
+                                                                                            self.max_sideways_force]))
+                                                                    * self.force_energy_quotient))
+            self.energy -= energy_expenditure
+        self.acceleration += copy_dir(None, f / self.mass, a=self.direction)
+    
+    def update_velocity(self, delta_time):
+        """
+        :param delta_time: float milliseconds
+        """
+        self.velocity += self.acceleration * delta_time
+        velocity_magnitude = np.linalg.norm(self.velocity) / delta_time
+        if velocity_magnitude > self.max_velocity:
+            self.velocity *= self.max_velocity / velocity_magnitude
     
     def update_position(self, delta_time):
         """
@@ -129,16 +162,17 @@ class Environment:
             creature.model.environment = self
     
     def step(self, delta_time, screen=None):
-        for creature in self.creatures:
-            if creature.energy <= 0:
-                print("Creature " + creature.id + " ran " + OUT_OF_ENERGY)
-                return "Creature " + creature.id + " ran " + OUT_OF_ENERGY
+        # Removed in favor of stun punishments and energy recovery
+        # for creature in self.creatures:
+        #     if creature.energy <= 0:
+        #         print("Creature " + creature.id + " ran " + OUT_OF_ENERGY)
+        #         return "Creature " + creature.id + " ran " + OUT_OF_ENERGY
         
         all_creature_pairs = [(a, b) for idx, a in enumerate(self.creatures) for b in self.creatures[idx + 1:]]  # Got this from GeeksForGeeks
         for a, b in all_creature_pairs:
             if (a.model.type != b.model.type) and (np.linalg.norm(a.position - b.position) <\
                                                    ((1 - self.EAT_EPSILON) * (a.size + b.size))):
-                self.creatures.remove(a if a.mode.type == PREY else b)
+                self.creatures.remove(a if a.model.type == PREY else b)
         if len([c for c in filter(FILTER_OUT_PREDATOR_OBJECTS, self.creatures)]) < 1:
             print(ALL_PREY_EATEN)
             return ALL_PREY_EATEN
@@ -183,8 +217,8 @@ class Environment:
         for creature, inputs in zip(self.creatures, all_inputs):
             creature.update_rotation_speed(-inputs[1])  # Negated because the screen is flipped
             creature.rotate(delta_time)
-            creature.apply_force(self.DRAG_COEFFICIENT * (np.linalg.norm(creature.velocity) ** 2) * self.DRAG_DIRECTION)
-            creature.apply_force(np.array(inputs[0], dtype=self.DTYPE))
+            creature.apply_force(self.DRAG_COEFFICIENT * (np.linalg.norm(creature.velocity) ** 2) * self.DRAG_DIRECTION, delta_time, self_motivated=False)
+            creature.apply_force(np.array(inputs[0], dtype=self.DTYPE), delta_time)
             creature.update_velocity(delta_time)
             creature.update_position(delta_time)
             if DRAW:

@@ -31,6 +31,8 @@ RECIPROCAL_MODE = "reciprocal"
 SUBTRACT_MODE = "subtract"
 USE_GPU = False
 REFERENCE_ANGLE = [1.0, 0.0]
+STUN_TICK_TIME = 85  # ms : ~5 ticks at 60 TPS
+STUN_IGNORE_PUNISHMENT_QUOTIENT = 0.5  # multiplier for adding stun time when creature tries to move while already stunned
 
 # Constants and globals
 # <>_ATTRS = {

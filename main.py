@@ -52,7 +52,6 @@ class Model:
         creature_states = state_info["creature_states"]
         relative_creature_states = []
         for state in creature_states:
-            print(state)
             if (not (state["id"] == self.creature.id)) and (abs(ANGLE_BETWEEN(state["position"] - self.creature.position, ANGLE_TO_VEC(self.creature.direction))) > self.creature.fov / 2):
                 # These may need to be implemented differently if the networks don't like implicit multimodality
                 perceived_type = UNKNOWN_TYPE
