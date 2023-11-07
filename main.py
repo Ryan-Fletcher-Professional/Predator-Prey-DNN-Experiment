@@ -68,7 +68,8 @@ class Model:
                 "distance"       : distance,
                 "relative_speed" : relative_speed,
                 "id"             : state["id"],
-                "energy"         : state["energy"]
+                "energy"         : state["energy"],
+                "stun"           : state["stun"]
             })
             # MAKE SURE YOU UPDATE GLOBALS.EXTERNAL_CHARACTERISTICS_PER_CREATURE and GLOBALS.INTERNAL_CHARACTERISTICS_PER_CREATURE
         relative_state_info["creature_states"] = relative_creature_states

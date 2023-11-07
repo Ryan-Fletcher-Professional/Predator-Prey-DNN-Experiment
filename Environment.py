@@ -243,7 +243,8 @@ class Environment:
                 "direction" : creature.direction,
                 "velocity"  : creature.velocity,
                 "id"        : creature.id,
-                "energy"    : creature.energy
+                "energy"    : creature.energy,
+                "stun"      : creature.stun
             })
         state_info["creature_states"] = creature_states
         state_info["time"] = self.time
