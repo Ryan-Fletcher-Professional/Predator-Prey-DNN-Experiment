@@ -1,13 +1,13 @@
 """
-THIS FILE WRITTEN BY RYAN FLETCHER AND
+THIS FILE WRITTEN BY RYAN FLETCHER AND SANATH UPADHYA
 """
 
 import torch
-import Globals
+from Globals import *
 
-dtype = Globals.DTYPE # we will be using float throughout this tutorial
+dtype = DTYPE # we will be using float throughout this tutorial
 
-if Globals.USE_GPU and torch.cuda.is_available():
+if USE_GPU and torch.cuda.is_available():
     device = torch.device('cuda')
 else:
     device = torch.device('cpu')

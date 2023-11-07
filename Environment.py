@@ -5,11 +5,11 @@ THIS FILE WRITTEN BY RYAN FLETCHER
 import math
 import numpy as np
 import pygame
-import Globals
+from Globals import *
 import main
 
 
-def angle_to_vec(angle, DTYPE=Globals.DTYPE):
+def angle_to_vec(angle, DTYPE=DTYPE):
     return np.array([math.cos(angle), math.sin(angle)], dtype=DTYPE)
 
 
@@ -20,7 +20,7 @@ def normalize(v):
     return v / norm
 
 
-def angle_between(v1, v2, DTYPE=Globals.DTYPE):
+def angle_between(v1, v2, DTYPE=DTYPE):
     """
     Got this from StackOverflow
     """
@@ -30,7 +30,7 @@ def angle_between(v1, v2, DTYPE=Globals.DTYPE):
     return angle
 
 
-def rotate_vector(v, angle, DTYPE=Globals.DTYPE):
+def rotate_vector(v, angle, DTYPE=DTYPE):
     rotation_matrix = np.array([
         [np.cos(angle, dtype=DTYPE), -np.sin(angle, dtype=DTYPE)],
         [np.sin(angle, dtype=DTYPE), np.cos(angle, dtype=DTYPE)]
@@ -38,12 +38,12 @@ def rotate_vector(v, angle, DTYPE=Globals.DTYPE):
     return rotation_matrix @ v
 
 
-def copy_dir(from_vec, to_vec, a=None, DTYPE=Globals.DTYPE):
+def copy_dir(from_vec, to_vec, a=None, DTYPE=DTYPE):
     if a is not None:
         angle = a
     else:
         b = normalize(from_vec)
-        angle = angle_between(np.array(Globals.REFERENCE_ANGLE, dtype=DTYPE), b)
+        angle = angle_between(np.array(REFERENCE_ANGLE, dtype=DTYPE), b)
     return rotate_vector(to_vec, angle)
 
 
@@ -123,12 +123,12 @@ class Creature:
         self.acceleration = 0
     
     def draw(self, screen):
-        pygame.draw.circle(screen, Globals.WHITE, self.position.astype(int), self.size)
-        bulge_radius = 10
+        pygame.draw.circle(screen, WHITE, self.position.astype(int), self.size)
+        bulge_radius = DEFAULT_CREATURE_SIZE
         bulge_position = self.position + angle_to_vec(self.direction) * bulge_radius
         # Draw the bulge as a smaller circle or an arc
         bulge_size = 4
-        pygame.draw.circle(screen, Globals.WHITE, bulge_position.astype(int), bulge_size)
+        pygame.draw.circle(screen, WHITE, bulge_position.astype(int), bulge_size)
         for ray in self.rays:
             ray.cast(screen, self.sight_range)
 
@@ -151,14 +151,17 @@ class Environment:
     def step(self, delta_time, screen=None):
         for creature in self.creatures:
             if creature.energy <= 0:
-                print("Creature " + creature.id + " ran " + Globals.OUT_OF_ENERGY)
-                return "Creature " + creature.id + " ran " + Globals.OUT_OF_ENERGY
-                
-        # Specified for one prey and one predator. CHANGE FOR EXPERIMENTS!
-        if np.linalg.norm(self.creatures[0].position - self.creatures[1].position) < \
-                         ((1 - self.EAT_EPSILON) * (Globals.PREY_ATTRS["size"] + Globals.PREDATOR_ATTRS["size"])):
-            print("PREY EATEN")
-            return Globals.PREY_EATEN
+                print("Creature " + creature.id + " ran " + OUT_OF_ENERGY)
+                return "Creature " + creature.id + " ran " + OUT_OF_ENERGY
+        
+        all_creature_pairs = [(a, b) for idx, a in enumerate(self.creatures) for b in self.creatures[idx + 1:]]  # Got this from GeeksForGeeks
+        for a, b in all_creature_pairs:
+            if (a.model.type != b.model.type) and (np.linalg.norm(a.position - b.position) <\
+                                                   ((1 - self.EAT_EPSILON) * (a.size + b.size))):
+                self.creatures.remove(a if a.mode.type == PREY else b)
+        if len([c for c in filter(FILTER_OUT_PREDATOR_OBJECTS, self.creatures)]) < 1:
+            print(ALL_PREY_EATEN)
+            return ALL_PREY_EATEN
         
         all_inputs = [creature.model.get_inputs() for creature in self.creatures]
         
@@ -178,7 +181,7 @@ class Environment:
         if keys[pygame.K_SPACE]:
             self.creatures[0].velocity = np.array([0.0, 0.0], dtype=self.DTYPE)
         override = normalize(override)
-        if np.linalg.norm(override) > 0 or Globals.ALWAYS_OVERRIDE_PREY_MOVEMENT:
+        if np.linalg.norm(override) > 0 or ALWAYS_OVERRIDE_PREY_MOVEMENT:
             all_inputs[0][0] = override.tolist()
         override = 0.0
         if keys[pygame.K_LEFT]:
@@ -187,7 +190,7 @@ class Environment:
             override += -2 * np.pi * (1 / 2) / 1000
         if keys[pygame.K_DOWN]:
             override = -all_inputs[0][1]
-        if Globals.ALWAYS_OVERRIDE_PREY_MOVEMENT:
+        if ALWAYS_OVERRIDE_PREY_MOVEMENT:
             all_inputs[0][1] = 0
         all_inputs[0][1] += override
         ######################################################################
@@ -204,14 +207,14 @@ class Environment:
             creature.apply_force(np.array(inputs[0], dtype=self.DTYPE))
             creature.update_velocity(delta_time)
             creature.update_position(delta_time)
-            if Globals.DRAW:
+            if DRAW:
                 creature.draw(screen)
         ################################################################################################################
         ################################################################################################################
         
         self.time += delta_time
 
-        return Globals.SUCCESSFUL_STEP
+        return SUCCESSFUL_STEP
     
     def get_state_info(self):
         """
@@ -241,4 +244,4 @@ class Ray:
         
     def cast(self, screen, length):
         end_point = self.position + angle_to_vec(self.angle) * length  # Arbitrary length
-        pygame.draw.line(screen, Globals.WHITE, self.position, end_point, 1)
+        pygame.draw.line(screen, WHITE, self.position, end_point, 1)

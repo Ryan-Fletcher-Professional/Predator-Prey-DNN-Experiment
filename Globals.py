@@ -1,14 +1,23 @@
 import numpy as np
+import pyautogui as ag
 
+__width, __height = ag.size()
+
+__scale_to_window_size = True
+__size_coefficient = 0.8
+DEFAULT_CREATURE_SIZE = 10
+NUM_TOTAL_CREATURES = 6  # Currently specified for only an even number of creatures!
+EXTERNAL_CHARACTERISTICS_PER_CREATURE = 3
+INTERNAL_CHARACTERISTICS_PER_CREATURE = 1
+SCREEN_WIDTH = (__width * __size_coefficient) if __scale_to_window_size else (DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) / 2)
+SCREEN_HEIGHT = (__height * __size_coefficient) if __scale_to_window_size else (DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) / 2)
 DTYPE = np.float64
 DRAW = True
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False
 PREY = -1.0
 PREDATOR = 1.0
 MAX_TPS = 60  # TODO: Should be increased to maximum stable value for experiments
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
-PREY_EATEN = "PREY_EATEN"
+ALL_PREY_EATEN = "ALL PREY_EATEN"
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
@@ -44,11 +53,11 @@ REFERENCE_ANGLE = [1.0, 0.0]
 #     "attrs"             : <>_ATTRS
 # }
 PREY_ATTRS = {
-    "fov"                       : 10 / 12,
-    "num_rays"                  : 18,
+    "fov"                       : 11 / 12,
+    "num_rays"                  : 23,
     "sight_range"               : 75,
     "mass"                      : 2.5,
-    "size"                      : 10,
+    "size"                      : DEFAULT_CREATURE_SIZE,
     "max_forward_force"         : 3 / 1000,
     "max_backward_force"        : 3 / 1000,
     "max_lr_force"              : 2 / 1000,
@@ -59,19 +68,19 @@ PREY_ATTRS = {
     "rotation_energy_quotient"  : 0.001  # ADJUST LATER
 }
 PREY_PARAMS = {
-    "x"                 : 400,
-    "y"                 : 300,
+    "x"                 : (SCREEN_WIDTH // 2) + 150,
+    "y"                 : (SCREEN_HEIGHT // 2) + 150,
     "initial_direction" : 0.0,
     "initial_energy"    : 100.0,
     "attrs"             : PREY_ATTRS,
     "DTYPE"             : DTYPE
 }
 PREDATOR_ATTRS = {
-    "fov"                       : 5 / 12,
-    "num_rays"                  : 10,
+    "fov"                       : 6 / 12,
+    "num_rays"                  : 13,
     "sight_range"               : 100,
     "mass"                      : 5,
-    "size"                      : 10,
+    "size"                      : DEFAULT_CREATURE_SIZE,
     "max_forward_force"         : 3.5 / 1000,
     "max_backward_force"        : 3 / 1000,
     "max_lr_force"              : 1.5 / 1000,
@@ -82,8 +91,8 @@ PREDATOR_ATTRS = {
     "rotation_energy_quotient"  : 0.001  # ADJUST LATER
 }
 PREDATOR_PARAMS = {
-    "x"                 : 200,
-    "y"                 : 150,
+    "x"                 : (SCREEN_WIDTH // 2) - 150,
+    "y"                 : (SCREEN_HEIGHT // 2) - 150,
     "initial_direction" : 0.0,
     "initial_energy"    : 100.0,
     "attrs"             : PREDATOR_ATTRS,
@@ -114,3 +123,19 @@ ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
     "EAT_EPSILON"       : .15,
     "DTYPE"             : DTYPE,
 }
+
+
+def FILTER_OUT_PREY_DICTS(creature):
+    return creature["type"] == PREDATOR
+
+
+def FILTER_OUT_PREDATOR_DICTS(creature):
+    return creature["type"] == PREY
+
+
+def FILTER_OUT_PREY_OBJECTS(creature):
+    return creature.model.type == PREDATOR
+
+
+def FILTER_OUT_PREDATOR_OBJECTS(creature):
+    return creature.model.type == PREY

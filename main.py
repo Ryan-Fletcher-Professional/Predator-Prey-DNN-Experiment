@@ -7,7 +7,7 @@ import numpy as np
 import math
 # from multiprocessing import Process  # Interferes with PyGame. Use when not drawing?
 # import time
-import Globals
+from Globals import *
 import Environment
 import PreyNetwork
 import PredatorNetwork
@@ -27,10 +27,10 @@ class Model:
     def __init__(self, creature_type, attrs):
         self.type = creature_type
         new_id = get_id()
-        if creature_type == Globals.PREY:
-            self.NN = PreyNetwork.PreyNetwork(Globals.PREY_NETWORK_HYPERPARAMETERS, new_id)
-        elif creature_type == Globals.PREDATOR:
-            self.NN = PredatorNetwork.PredatorNetwork(Globals.PREDATOR_NETWORK_HYPERPARAMETERS, new_id)
+        if creature_type == PREY:
+            self.NN = PreyNetwork.PreyNetwork(PREY_NETWORK_HYPERPARAMETERS, new_id)
+        elif creature_type == PREDATOR:
+            self.NN = PredatorNetwork.PredatorNetwork(PREDATOR_NETWORK_HYPERPARAMETERS, new_id)
         else:
             self.NN = None
         self.sight_range = attrs["sight_range"]
@@ -62,30 +62,40 @@ class Model:
                 "id"        : state["id"],
                 "energy"    : state["energy"]
             })
+            # MAKE SURE YOU UPDATE GLOBALS.EXTERNAL_CHARACTERISTICS_PER_CREATURE and GLOBALS.INTERNAL_CHARACTERISTICS_PER_CREATURE
         relative_state_info["creature_states"] = relative_creature_states
         return self.NN.get_inputs(relative_state_info)
 
 
 def main():
     pygame.init()
-    if Globals.DRAW:
-        screen = pygame.display.set_mode((Globals.SCREEN_WIDTH, Globals.SCREEN_HEIGHT))
+    if DRAW:
+        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     clock = pygame.time.Clock()
     
     # queue = multiprocessing.Queue()  # multiprocessing interferes with pygame's loop
     
     running = True
     
-    # Specified for one prey and one predator. CHANGE FOR EXPERIMENTS!
-    Globals.PREY_NETWORK_HYPERPARAMETERS["dimensions"][0] = 7
-    Globals.PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"][0] = 7
-    models = [(Globals.PREY_PARAMS, Model(Globals.PREY, Globals.PREY_ATTRS)), (Globals.PREDATOR_PARAMS, Model(Globals.PREDATOR, Globals.PREDATOR_ATTRS))]
+    # Currently specified relative to the manually-set default x and y in <>__PARAMS in Globals
+    PREY_NETWORK_HYPERPARAMETERS["dimensions"][0] = INTERNAL_CHARACTERISTICS_PER_CREATURE + EXTERNAL_CHARACTERISTICS_PER_CREATURE +\
+                                                    ((NUM_TOTAL_CREATURES // 2) * EXTERNAL_CHARACTERISTICS_PER_CREATURE)
+                                                    # "self" plus enemies
+    PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"][0] = PREY_NETWORK_HYPERPARAMETERS["dimensions"][0]
+    models = [(PREY_PARAMS.copy(), Model(PREY, PREY_ATTRS)) for __ in range(NUM_TOTAL_CREATURES // 2)] +\
+             [(PREDATOR_PARAMS.copy(), Model(PREDATOR, PREDATOR_ATTRS)) for __ in range(NUM_TOTAL_CREATURES // 2)]
+    for i in range(1, NUM_TOTAL_CREATURES // 2):
+        models[i][0]["x"] += PREY_ATTRS["size"] * 1.25
+        models[i][0]["y"] += PREY_ATTRS["size"] * 1.25
+    for i in range(NUM_TOTAL_CREATURES // 2, NUM_TOTAL_CREATURES):
+        models[i][0]["x"] -= PREDATOR_ATTRS["size"] * 1.25
+        models[i][0]["y"] -= PREDATOR_ATTRS["size"] * 1.25
     
-    env = Environment.Environment(Globals.ENVIRONMENT_PARAMETERS, models)
+    env = Environment.Environment(ENVIRONMENT_PARAMETERS, models)
     
-    if Globals.DRAW:
-        prey_pos = []
-        pred_pos = []
+    if DRAW:
+        FOCUS = 0  # Index of focused creature in environment's list
+        focus_pos = []
 
     while running:
         for event in pygame.event.get():
@@ -112,30 +122,29 @@ def main():
         ##############################################################################
         ##############################################################################
         
-        if Globals.DRAW:
-            screen.fill(Globals.BLACK)
+        if DRAW:
+            screen.fill(BLACK)
         
-        delta_time = min(1.0 / 60.0 * 1000, clock.tick(Globals.MAX_TPS))
+        delta_time = min(1.0 / 60.0 * 1000, clock.tick(MAX_TPS))
+        # print(delta_time * MAX_TPS / 1000)  # ~=1 if on target TPS
         
-        step_result = env.step(delta_time, screen=screen if Globals.DRAW else None)
+        step_result = env.step(delta_time, screen=screen if DRAW else None)
         
         ##################################################################################
-        # This is for testing, and is specified for one prey and one predator.           #
+        # This is for testing.                                                           #
         ##################################################################################
-        if Globals.DRAW:
-            prey_pos.append(env.creatures[0].position.tolist())
-            pred_pos.append(env.creatures[1].position.tolist())
-            for i in range(len(prey_pos)):
-                pygame.draw.circle(screen, (np.array(Globals.GREEN, dtype=Globals.DTYPE) * i / len(prey_pos)).tolist(),
-                                   (int(prey_pos[i][0]), int(prey_pos[i][1])), 2)
+        if DRAW:
+            focus_pos.append(env.creatures[FOCUS].position.tolist())
+            for i in range(len(focus_pos)):
+                pygame.draw.circle(screen, (np.array(GREEN, dtype=DTYPE) * i / len(focus_pos)).tolist(),
+                                   (int(focus_pos[i][0]), int(focus_pos[i][1])), 2)
         ##################################################################################
         # End testing                                                                    #
         ##################################################################################
-        
-        if step_result == Globals.PREY_EATEN or step_result.endswith(Globals.OUT_OF_ENERGY):
+        if step_result == ALL_PREY_EATEN or step_result.endswith(OUT_OF_ENERGY):
             running = False
 
-        if Globals.DRAW:
+        if DRAW:
             pygame.display.flip()
 
     pygame.quit()

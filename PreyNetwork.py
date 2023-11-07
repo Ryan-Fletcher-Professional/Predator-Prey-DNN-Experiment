@@ -1,47 +1,40 @@
 """
-THIS FILE WRITTEN BY RYAN FLETCHER AND
+THIS FILE WRITTEN BY RYAN FLETCHER AND SANATH UPADHYA
 """
 
 import torch
 import math
-import Globals
+from Globals import *
 import Networks
-
-
-def filter_out_preys(creature):
-    return creature["type"] == Globals.PREDATOR
 
 
 class PreyNetwork(Networks.CreatureFullyConnected):
     def __init__(self, hyperparameters, self_id):
         super().__init__(hyperparameters)
-        self.loss_mode = hyperparameters.get("loss_mode", Globals.SUBTRACT_MODE)
+        self.loss_mode = hyperparameters.get("loss_mode", SUBTRACT_MODE)
         self.id = self_id
         
     def transform(self, state_info):
         # Own energy + own other characteristics + other creatures' other characteristics IN THAT ORDER
-        #return torch.FloatTensor([1.0] * ((3 * len([predator for predator in filter(filter_out_preys, state_info["creature_states"])])) + 4)) # Placeholder
-
         this = None
         for creature_state in state_info["creature_states"]:
             if creature_state["id"] == self.id:
                 this = creature_state
                 break
         flattened = [this["energy"], this["type"], this["distance"], this["speed"]]
-        for predator_state in filter(filter_out_preys, state_info["creature_states"]):
+        for predator_state in filter(FILTER_OUT_PREY_DICTS, state_info["creature_states"]):
             flattened.append(predator_state["type"])
             flattened.append(predator_state["distance"])
             flattened.append(predator_state["speed"])
-        print(flattened)
         return torch.FloatTensor(flattened)
     
     def loss(self, state_info):
-        creature_states = filter(filter_out_preys, state_info["creature_states"])
+        creature_states = filter(FILTER_OUT_PREY_DICTS, state_info["creature_states"])
         closest = {"distance" : math.inf}
         for creature in creature_states:
             if creature["distance"] < closest["distance"]:
                 closest = creature
-        if self.loss_mode == Globals.RECIPROCAL_MODE:
+        if self.loss_mode == RECIPROCAL_MODE:
             return torch.tensor(1 / closest["distance"], requires_grad=True)
-        elif self.loss_mode == Globals.SUBTRACT_MODE:
+        elif self.loss_mode == SUBTRACT_MODE:
             return torch.tensor(-closest["distance"], requires_grad=True)
