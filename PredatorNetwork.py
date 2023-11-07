@@ -20,11 +20,9 @@ class PredatorNetwork(Networks.CreatureFullyConnected):
             if creature_state["id"] == self.id:
                 this = creature_state
                 break
-        flattened = [this["energy"], this["type"], this["distance"], this["speed"]]
+        flattened = [this["energy"], this["relative_speed"]]
         for prey_state in filter(FILTER_OUT_PREDATOR_DICTS, state_info["creature_states"]):
-            flattened.append(prey_state["type"])
-            flattened.append(prey_state["distance"])
-            flattened.append(prey_state["speed"])
+            flattened += [prey_state["relative_speed"], prey_state["perceived_type"], prey_state["distance"]]
         return torch.FloatTensor(flattened)
     
     def loss(self, state_info):

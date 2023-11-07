@@ -52,15 +52,24 @@ class Model:
         creature_states = state_info["creature_states"]
         relative_creature_states = []
         for state in creature_states:
-            distance = np.linalg.norm(self.creature.position - state["position"])
+            print(state)
+            if (not (state["id"] == self.creature.id)) and (abs(ANGLE_BETWEEN(state["position"] - self.creature.position, ANGLE_TO_VEC(self.creature.direction))) > self.creature.fov / 2):
+                # These may need to be implemented differently if the networks don't like implicit multimodality
+                perceived_type = UNKNOWN_TYPE
+                distance = 0.0
+                relative_speed = 0.0
+            else:
+                perceived_type = state["type"]
+                distance = np.linalg.norm(state["position"] - self.creature.position)
+                relative_speed = np.linalg.norm(self.creature.velocity - state["velocity"]) * math.pow(math.e, -SPEED_ESTIMATION_DECAY * (distance - self.creature.sight_range))
+                
             relative_creature_states.append({
-                "type"      : state["type"],
-                "distance"  : distance,
-                "speed"     : state["speed"] * math.pow(math.e,
-                                                        -SPEED_ESTIMATION_DECAY *
-                                                        (distance - self.creature.sight_range)),
-                "id"        : state["id"],
-                "energy"    : state["energy"]
+                "type"           : state["type"],
+                "perceived_type" : perceived_type,
+                "distance"       : distance,
+                "relative_speed" : relative_speed,
+                "id"             : state["id"],
+                "energy"         : state["energy"]
             })
             # MAKE SURE YOU UPDATE GLOBALS.EXTERNAL_CHARACTERISTICS_PER_CREATURE and GLOBALS.INTERNAL_CHARACTERISTICS_PER_CREATURE
         relative_state_info["creature_states"] = relative_creature_states
@@ -78,7 +87,7 @@ def main():
     running = True
     
     # Currently specified relative to the manually-set default x and y in <>__PARAMS in Globals
-    PREY_NETWORK_HYPERPARAMETERS["dimensions"][0] = INTERNAL_CHARACTERISTICS_PER_CREATURE + EXTERNAL_CHARACTERISTICS_PER_CREATURE +\
+    PREY_NETWORK_HYPERPARAMETERS["dimensions"][0] = INTERNAL_CHARACTERISTICS_PER_CREATURE +\
                                                     ((NUM_TOTAL_CREATURES // 2) * EXTERNAL_CHARACTERISTICS_PER_CREATURE)
                                                     # "self" plus enemies
     PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"][0] = PREY_NETWORK_HYPERPARAMETERS["dimensions"][0]

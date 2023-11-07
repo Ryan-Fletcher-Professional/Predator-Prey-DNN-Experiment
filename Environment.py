@@ -9,27 +9,6 @@ from Globals import *
 import main
 
 
-def angle_to_vec(angle, DTYPE=DTYPE):
-    return np.array([math.cos(angle), math.sin(angle)], dtype=DTYPE)
-
-
-def normalize(v):
-    norm = np.linalg.norm(v)
-    if norm == 0:
-        return v
-    return v / norm
-
-
-def angle_between(v1, v2, DTYPE=DTYPE):
-    """
-    Got this from StackOverflow
-    """
-    v1_u = normalize(v1)
-    v2_u = normalize(v2)
-    angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0, dtype=DTYPE), dtype=DTYPE) % (2 * np.pi)
-    return angle
-
-
 def rotate_vector(v, angle, DTYPE=DTYPE):
     rotation_matrix = np.array([
         [np.cos(angle, dtype=DTYPE), -np.sin(angle, dtype=DTYPE)],
@@ -42,8 +21,8 @@ def copy_dir(from_vec, to_vec, a=None, DTYPE=DTYPE):
     if a is not None:
         angle = a
     else:
-        b = normalize(from_vec)
-        angle = angle_between(np.array(REFERENCE_ANGLE, dtype=DTYPE), b)
+        b = NORMALIZE(from_vec)
+        angle = ANGLE_BETWEEN(np.array(REFERENCE_ANGLE, dtype=DTYPE), b)
     return rotate_vector(to_vec, angle)
 
 
@@ -57,6 +36,7 @@ class Creature:
         self.id = creature_id if creature_id is not None else main.get_id()
         self.DTYPE = params["DTYPE"]
         attrs = params["attrs"]
+        self.fov = attrs["fov"]
         self.sight_range = attrs["sight_range"]
         self.mass = attrs["mass"]
         self.size = attrs["size"]
@@ -75,8 +55,8 @@ class Creature:
         self.force_energy_quotient = attrs["force_energy_quotient"]
         self.rotation_speed = 0.0
         self.rotation_energy_quotient = attrs["rotation_energy_quotient"]
-        self.rays = [Ray(self.position, angle) for angle in np.linspace(-(attrs["fov"] / 2) * 2 * np.pi,
-                                                                        (attrs["fov"] / 2) * 2 * np.pi,
+        self.rays = [Ray(self.position, angle) for angle in np.linspace(-(self.fov / 2) * 2 * np.pi,
+                                                                        (self.fov / 2) * 2 * np.pi,
                                                                         num=attrs["num_rays"], dtype=self.DTYPE)]
         self.model = model
     
@@ -125,7 +105,7 @@ class Creature:
     def draw(self, screen):
         pygame.draw.circle(screen, WHITE, self.position.astype(int), self.size)
         bulge_radius = DEFAULT_CREATURE_SIZE
-        bulge_position = self.position + angle_to_vec(self.direction) * bulge_radius
+        bulge_position = self.position + ANGLE_TO_VEC(self.direction) * bulge_radius
         # Draw the bulge as a smaller circle or an arc
         bulge_size = 4
         pygame.draw.circle(screen, WHITE, bulge_position.astype(int), bulge_size)
@@ -180,7 +160,7 @@ class Environment:
             override += np.array([0.0, 1.0], dtype=self.DTYPE)
         if keys[pygame.K_SPACE]:
             self.creatures[0].velocity = np.array([0.0, 0.0], dtype=self.DTYPE)
-        override = normalize(override)
+        override = NORMALIZE(override)
         if np.linalg.norm(override) > 0 or ALWAYS_OVERRIDE_PREY_MOVEMENT:
             all_inputs[0][0] = override.tolist()
         override = 0.0
@@ -227,7 +207,7 @@ class Environment:
                 "type"      : creature.model.type,
                 "position"  : creature.position,
                 "direction" : creature.direction,
-                "speed"     : np.linalg.norm(creature.velocity),
+                "velocity"  : creature.velocity,
                 "id"        : creature.id,
                 "energy"    : creature.energy
             })
@@ -243,5 +223,5 @@ class Ray:
         self.angle = angle
         
     def cast(self, screen, length):
-        end_point = self.position + angle_to_vec(self.angle) * length  # Arbitrary length
+        end_point = self.position + ANGLE_TO_VEC(self.angle) * length  # Arbitrary length
         pygame.draw.line(screen, WHITE, self.position, end_point, 1)

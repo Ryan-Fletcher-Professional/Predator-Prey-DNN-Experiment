@@ -26,6 +26,7 @@ class CreatureNetwork:
         # Transform into a 1d array with environment info first then info about all other relevent creatures.
         input = self.transform(state_info)
         scores = self.train_part34(self.model, self.optimizer, state_info, input)
+        # This goes elsewhere?
         # self.model.eval()
         # scores = None
         # with torch.no_grad():

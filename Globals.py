@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import pyautogui as ag
 
@@ -8,13 +9,14 @@ __size_coefficient = 0.8
 DEFAULT_CREATURE_SIZE = 10
 NUM_TOTAL_CREATURES = 6  # Currently specified for only an even number of creatures!
 EXTERNAL_CHARACTERISTICS_PER_CREATURE = 3
-INTERNAL_CHARACTERISTICS_PER_CREATURE = 1
+INTERNAL_CHARACTERISTICS_PER_CREATURE = 2
 SCREEN_WIDTH = (__width * __size_coefficient) if __scale_to_window_size else (DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) / 2)
 SCREEN_HEIGHT = (__height * __size_coefficient) if __scale_to_window_size else (DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) / 2)
 DTYPE = np.float64
 DRAW = True
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False
 PREY = -1.0
+UNKNOWN_TYPE = 0.0
 PREDATOR = 1.0
 MAX_TPS = 60  # TODO: Should be increased to maximum stable value for experiments
 ALL_PREY_EATEN = "ALL PREY_EATEN"
@@ -123,6 +125,27 @@ ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
     "EAT_EPSILON"       : .15,
     "DTYPE"             : DTYPE,
 }
+
+
+def NORMALIZE(v):
+    norm = np.linalg.norm(v)
+    if norm == 0:
+        return v
+    return v / norm
+
+
+def ANGLE_BETWEEN(v1, v2, DTYPE=DTYPE):
+    """
+    Got this from StackOverflow
+    """
+    v1_u = NORMALIZE(v1)
+    v2_u = NORMALIZE(v2)
+    angle = np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0, dtype=DTYPE), dtype=DTYPE) % (2 * np.pi)
+    return angle
+
+
+def ANGLE_TO_VEC(angle, DTYPE=DTYPE):
+    return np.array([math.cos(angle), math.sin(angle)], dtype=DTYPE)
 
 
 def FILTER_OUT_PREY_DICTS(creature):
