@@ -26,6 +26,18 @@ def copy_dir(from_vec, to_vec, a=None, DTYPE=DTYPE):
     return rotate_vector(to_vec, angle)
 
 
+class Ray:
+    def __init__(self, position, angle):
+        self.position = position
+        self.angle = angle
+        
+    def cast(self, screen, length):
+        # Currently does not account for space wrapping, though sight calculations do.
+        # Update this purely-aesthetic method if we have time.
+        end_point = self.position + ANGLE_TO_VEC(self.angle) * length
+        pygame.draw.line(screen, WHITE, self.position, end_point, 1)
+
+
 class Creature:
     def __init__(self, params, model, creature_id=None):
         """
@@ -134,16 +146,49 @@ class Creature:
         """
         self.position += self.velocity * delta_time
         self.acceleration = 0
+        if self.position[0] < 0:
+            self.position[0] = SCREEN_WIDTH + self.position[0]
+        if self.position[1] < 0:
+            self.position[1] = SCREEN_HEIGHT + self.position[1]
+        if SCREEN_WIDTH - self.position[0] < 0:
+            self.position[0] = -(SCREEN_WIDTH - self.position[0])
+        if SCREEN_HEIGHT - self.position[1] < 0:
+            self.position[1] = -(SCREEN_HEIGHT - self.position[1])
     
     def draw(self, screen):
-        pygame.draw.circle(screen, WHITE, self.position.astype(int), self.size)
+        for ray in self.rays:
+            ray.cast(screen, self.sight_range)
+        pygame.draw.circle(screen, CREATURE_COLORS[self.model.type], self.position.astype(int), self.size)
         bulge_radius = DEFAULT_CREATURE_SIZE
         bulge_position = self.position + ANGLE_TO_VEC(self.direction) * bulge_radius
         # Draw the bulge as a smaller circle or an arc
         bulge_size = 4
-        pygame.draw.circle(screen, WHITE, bulge_position.astype(int), bulge_size)
-        for ray in self.rays:
-            ray.cast(screen, self.sight_range)
+        pygame.draw.circle(screen, CREATURE_COLORS[self.model.type], bulge_position.astype(int), bulge_size)
+    
+    def see_others(self, env):
+        positions = [self.position]
+        if self.position[0] - self.sight_range < 0:
+            positions.append([SCREEN_WIDTH + self.position[0], self.position[1]])
+        if self.position[1] - self.sight_range < 0:
+            positions.append([self.position[0], SCREEN_HEIGHT + self.position[1]])
+        if SCREEN_WIDTH - self.position[0] < self.sight_range:
+            positions.append([-(SCREEN_WIDTH - self.position[0]), self.position[1]])
+        if SCREEN_HEIGHT - self.position[1] < self.sight_range:
+            positions.append([self.position[0], -(SCREEN_HEIGHT - self.position[1])])
+        can_see = []
+        for creature in env.creatures:
+            in_any_angle_and_range = False
+            shortest_distance = math.inf
+            for position in positions:
+                distance = np.linalg.norm(creature.position - position)
+                if (abs(ANGLE_BETWEEN(creature.position - position, ANGLE_TO_VEC(self.direction))) <= self.fov / 2) and\
+                    (distance <= self.sight_range):
+                    in_any_angle_and_range = True
+                    if distance < shortest_distance:
+                        shortest_distance = distance
+            if (not (creature.id == self.id)) and in_any_angle_and_range:
+                can_see.append((creature.id, shortest_distance))
+        return can_see
 
 
 class Environment:
@@ -250,13 +295,3 @@ class Environment:
         state_info["time"] = self.time
         # TODO : WHAT OTHER STUFF?
         return state_info
-
-
-class Ray:
-    def __init__(self, position, angle):
-        self.position = position
-        self.angle = angle
-        
-    def cast(self, screen, length):
-        end_point = self.position + ANGLE_TO_VEC(self.angle) * length  # Arbitrary length
-        pygame.draw.line(screen, WHITE, self.position, end_point, 1)

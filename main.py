@@ -50,17 +50,22 @@ class Model:
         state_info = self.environment.get_state_info()
         relative_state_info = {"time": state_info["time"]}
         creature_states = state_info["creature_states"]
+        sights = self.creature.see_others(self.environment)  # [(id, distance), (id, distance), ...]
         relative_creature_states = []
         for state in creature_states:
-            if (not (state["id"] == self.creature.id)) and (abs(ANGLE_BETWEEN(state["position"] - self.creature.position, ANGLE_TO_VEC(self.creature.direction))) > self.creature.fov / 2):
+            hit = False
+            if not (state["id"] == self.creature.id):
+                for sight in sights:
+                    if sight[0] == state["id"]:
+                        hit = True
+                        perceived_type = state["type"]
+                        distance = sight[1]
+                        relative_speed = np.linalg.norm(self.creature.velocity - state["velocity"]) * math.pow(math.e, -SPEED_ESTIMATION_DECAY * (distance - self.creature.sight_range))
+            if not hit:
                 # These may need to be implemented differently if the networks don't like implicit multimodality
                 perceived_type = UNKNOWN_TYPE
                 distance = 0.0
                 relative_speed = 0.0
-            else:
-                perceived_type = state["type"]
-                distance = np.linalg.norm(state["position"] - self.creature.position)
-                relative_speed = np.linalg.norm(self.creature.velocity - state["velocity"]) * math.pow(math.e, -SPEED_ESTIMATION_DECAY * (distance - self.creature.sight_range))
                 
             relative_creature_states.append({
                 "type"           : state["type"],

@@ -25,6 +25,7 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
+CREATURE_COLORS = { PREY: GREEN, PREDATOR: RED }
 OUT_OF_ENERGY = "out of energy"
 SUCCESSFUL_STEP = "success"
 RECIPROCAL_MODE = "reciprocal"
