@@ -14,7 +14,7 @@ SCREEN_WIDTH = (__width * __size_coefficient) if __scale_to_window_size else (DE
 SCREEN_HEIGHT = (__height * __size_coefficient) if __scale_to_window_size else (DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) / 2)
 DTYPE = np.float64
 DRAW = True
-ALWAYS_OVERRIDE_PREY_MOVEMENT = False
+ALWAYS_OVERRIDE_PREY_MOVEMENT = True
 PREY = -1.0
 UNKNOWN_TYPE = 0.0
 PREDATOR = 1.0
@@ -25,6 +25,7 @@ BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
+GRAY = (100, 100, 100)
 CREATURE_COLORS = { PREY: GREEN, PREDATOR: RED }
 OUT_OF_ENERGY = "out of energy"
 SUCCESSFUL_STEP = "success"
@@ -34,6 +35,7 @@ USE_GPU = False
 REFERENCE_ANGLE = [1.0, 0.0]
 STUN_TICK_TIME = 85  # ms : ~5 ticks at 60 TPS
 STUN_IGNORE_PUNISHMENT_QUOTIENT = 0.5  # multiplier for adding stun time when creature tries to move while already stunned
+NETWORK_OUTPUT_DEFAULT = [0.0, 0.0, 0.0]  # Mainly for dead creatures
 
 # Constants and globals
 # <>_ATTRS = {

@@ -78,7 +78,7 @@ class Model:
             })
             # MAKE SURE YOU UPDATE GLOBALS.EXTERNAL_CHARACTERISTICS_PER_CREATURE and GLOBALS.INTERNAL_CHARACTERISTICS_PER_CREATURE
         relative_state_info["creature_states"] = relative_creature_states
-        return self.NN.get_inputs(relative_state_info)
+        return self.NN.get_inputs(relative_state_info) if self.creature.alive else NETWORK_OUTPUT_DEFAULT
 
 
 def main():

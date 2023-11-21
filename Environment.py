@@ -31,11 +31,11 @@ class Ray:
         self.position = position
         self.angle = angle
         
-    def cast(self, screen, length):
+    def cast(self, screen, length, color=WHITE):
         # Currently does not account for space wrapping, though sight calculations do.
         # Update this purely-aesthetic method if we have time.
         end_point = self.position + ANGLE_TO_VEC(self.angle) * length
-        pygame.draw.line(screen, WHITE, self.position, end_point, 1)
+        pygame.draw.line(screen, color, self.position, end_point, 1)
 
 
 class Creature:
@@ -74,6 +74,7 @@ class Creature:
                                                                         (self.fov / 2) * 2 * np.pi,
                                                                         num=attrs["num_rays"], dtype=self.DTYPE)]
         self.model = model
+        self.alive = True
     
     def update_rotation_speed(self, speed):
         """
@@ -157,13 +158,13 @@ class Creature:
     
     def draw(self, screen):
         for ray in self.rays:
-            ray.cast(screen, self.sight_range)
-        pygame.draw.circle(screen, CREATURE_COLORS[self.model.type], self.position.astype(int), self.size)
+            ray.cast(screen, self.sight_range, color=WHITE if self.alive else GRAY)
+        pygame.draw.circle(screen, CREATURE_COLORS[self.model.type] if self.alive else GRAY, self.position.astype(int), self.size)
         bulge_radius = DEFAULT_CREATURE_SIZE
         bulge_position = self.position + ANGLE_TO_VEC(self.direction) * bulge_radius
         # Draw the bulge as a smaller circle or an arc
         bulge_size = 4
-        pygame.draw.circle(screen, CREATURE_COLORS[self.model.type], bulge_position.astype(int), bulge_size)
+        pygame.draw.circle(screen, CREATURE_COLORS[self.model.type] if self.alive else GRAY, bulge_position.astype(int), bulge_size)
     
     def see_others(self, env):
         positions = [self.position]
@@ -186,7 +187,7 @@ class Creature:
                     in_any_angle_and_range = True
                     if distance < shortest_distance:
                         shortest_distance = distance
-            if (not (creature.id == self.id)) and in_any_angle_and_range:
+            if (not (creature.id == self.id)) and in_any_angle_and_range and creature.alive:
                 can_see.append((creature.id, shortest_distance))
         return can_see
 
@@ -215,10 +216,17 @@ class Environment:
         
         all_creature_pairs = [(a, b) for idx, a in enumerate(self.creatures) for b in self.creatures[idx + 1:]]  # Got this from GeeksForGeeks
         for a, b in all_creature_pairs:
-            if (a.model.type != b.model.type) and (np.linalg.norm(a.position - b.position) <\
-                                                   ((1 - self.EAT_EPSILON) * (a.size + b.size))):
-                self.creatures.remove(a if a.model.type == PREY else b)
-        if len([c for c in filter(FILTER_OUT_PREDATOR_OBJECTS, self.creatures)]) < 1:
+            if a.alive and b.alive and\
+               (((a.model.type == PREY) and (b.model.type == PREDATOR)) or ((b.model.type == PREY) and (a.model.type == PREDATOR))) and\
+               (np.linalg.norm(a.position - b.position) < ((1 - self.EAT_EPSILON) * (a.size + b.size))):
+                a.alive = (a.model.type == PREDATOR)
+                b.alive = (b.model.type == PREDATOR)
+        all_prey_eaten = True
+        for creature in filter(FILTER_OUT_PREDATOR_OBJECTS, self.creatures):
+            if creature.alive:
+                all_prey_eaten = False
+                break
+        if all_prey_eaten:
             print(ALL_PREY_EATEN)
             return ALL_PREY_EATEN
         
@@ -227,31 +235,32 @@ class Environment:
         ######################################################################
         # The following is for testing                                       #
         ######################################################################
-        override = np.array([0.0, 0.0], dtype=self.DTYPE)
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
-            override += np.array([1.0, 0.0], dtype=self.DTYPE)
-        if keys[pygame.K_a]:
-            override += np.array([0.0, -1.0], dtype=self.DTYPE)
-        if keys[pygame.K_s]:
-            override += np.array([-1.0, 0.0], dtype=self.DTYPE)
-        if keys[pygame.K_d]:
-            override += np.array([0.0, 1.0], dtype=self.DTYPE)
-        if keys[pygame.K_SPACE]:
-            self.creatures[0].velocity = np.array([0.0, 0.0], dtype=self.DTYPE)
-        override = NORMALIZE(override)
-        if np.linalg.norm(override) > 0 or ALWAYS_OVERRIDE_PREY_MOVEMENT:
-            all_inputs[0][0] = override.tolist()
-        override = 0.0
-        if keys[pygame.K_LEFT]:
-            override += 2 * np.pi * (1 / 2) / 1000
-        if keys[pygame.K_RIGHT]:
-            override += -2 * np.pi * (1 / 2) / 1000
-        if keys[pygame.K_DOWN]:
-            override = -all_inputs[0][1]
-        if ALWAYS_OVERRIDE_PREY_MOVEMENT:
-            all_inputs[0][1] = 0
-        all_inputs[0][1] += override
+        if self.creatures[0].alive:
+            override = np.array([0.0, 0.0], dtype=self.DTYPE)
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_w]:
+                override += np.array([1.0, 0.0], dtype=self.DTYPE)
+            if keys[pygame.K_a]:
+                override += np.array([0.0, -1.0], dtype=self.DTYPE)
+            if keys[pygame.K_s]:
+                override += np.array([-1.0, 0.0], dtype=self.DTYPE)
+            if keys[pygame.K_d]:
+                override += np.array([0.0, 1.0], dtype=self.DTYPE)
+            if keys[pygame.K_SPACE]:
+                self.creatures[0].velocity = np.array([0.0, 0.0], dtype=self.DTYPE)
+            override = NORMALIZE(override)
+            if np.linalg.norm(override) > 0 or ALWAYS_OVERRIDE_PREY_MOVEMENT:
+                all_inputs[0][0] = override.tolist()
+            override = 0.0
+            if keys[pygame.K_LEFT]:
+                override += 2 * np.pi * (1 / 2) / 1000
+            if keys[pygame.K_RIGHT]:
+                override += -2 * np.pi * (1 / 2) / 1000
+            if keys[pygame.K_DOWN]:
+                override = -all_inputs[0][1]
+            if ALWAYS_OVERRIDE_PREY_MOVEMENT:
+                all_inputs[0][1] = 0
+            all_inputs[0][1] += override
         ######################################################################
         # END TESTING                                                        #
         ######################################################################
@@ -260,12 +269,13 @@ class Environment:
         # Creature positions are updated here                                                                          #
         ################################################################################################################
         for creature, inputs in zip(self.creatures, all_inputs):
-            creature.update_rotation_speed(-inputs[1])  # Negated because the screen is flipped
-            creature.rotate(delta_time)
-            creature.apply_force(self.DRAG_COEFFICIENT * (np.linalg.norm(creature.velocity) ** 2) * self.DRAG_DIRECTION, delta_time, self_motivated=False)
-            creature.apply_force(np.array(inputs[0], dtype=self.DTYPE), delta_time)
-            creature.update_velocity(delta_time)
-            creature.update_position(delta_time)
+            if creature.alive:
+                creature.update_rotation_speed(-inputs[1])  # Negated because the screen is flipped
+                creature.rotate(delta_time)
+                creature.apply_force(self.DRAG_COEFFICIENT * (np.linalg.norm(creature.velocity) ** 2) * self.DRAG_DIRECTION, delta_time, self_motivated=False)
+                creature.apply_force(np.array(inputs[0], dtype=self.DTYPE), delta_time)
+                creature.update_velocity(delta_time)
+                creature.update_position(delta_time)
             if DRAW:
                 creature.draw(screen)
         ################################################################################################################
