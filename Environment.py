@@ -158,7 +158,7 @@ class Creature:
     
     def draw(self, screen):
         for ray in self.rays:
-            ray.cast(screen, self.sight_range, color=WHITE if self.alive else GRAY)
+            ray.cast(screen, self.sight_range, color=WHITE if self.alive else BACKGROUND_COLOR)
         pygame.draw.circle(screen, CREATURE_COLORS[self.model.type] if self.alive else GRAY, self.position.astype(int), self.size)
         bulge_radius = DEFAULT_CREATURE_SIZE
         bulge_position = self.position + ANGLE_TO_VEC(self.direction) * bulge_radius
@@ -195,7 +195,6 @@ class Creature:
 class Environment:
     def __init__(self, env_params, models):
         self.DRAG_COEFFICIENT = env_params["DRAG_COEFFICIENT"]
-        self.DRAG_DIRECTION = env_params["DRAG_DIRECTION"]
         self.MIN_TPS = env_params["MIN_TPS"]
         self.EAT_EPSILON = env_params["EAT_EPSILON"]
         self.DTYPE = env_params["DTYPE"]
@@ -235,7 +234,7 @@ class Environment:
         ######################################################################
         # The following is for testing                                       #
         ######################################################################
-        if self.creatures[0].alive:
+        if self.creatures[FOCUS_CREATURE].alive:
             override = np.array([0.0, 0.0], dtype=self.DTYPE)
             keys = pygame.key.get_pressed()
             if keys[pygame.K_w]:
@@ -247,10 +246,10 @@ class Environment:
             if keys[pygame.K_d]:
                 override += np.array([0.0, 1.0], dtype=self.DTYPE)
             if keys[pygame.K_SPACE]:
-                self.creatures[0].velocity = np.array([0.0, 0.0], dtype=self.DTYPE)
+                self.creatures[FOCUS_CREATURE].velocity = np.array([0.0, 0.0], dtype=self.DTYPE)
             override = NORMALIZE(override)
             if np.linalg.norm(override) > 0 or ALWAYS_OVERRIDE_PREY_MOVEMENT:
-                all_inputs[0][0] = override.tolist()
+                all_inputs[FOCUS_CREATURE][0] = override.tolist()
             override = 0.0
             if keys[pygame.K_LEFT]:
                 override += 2 * np.pi * (1 / 2) / 1000
@@ -259,8 +258,8 @@ class Environment:
             if keys[pygame.K_DOWN]:
                 override = -all_inputs[0][1]
             if ALWAYS_OVERRIDE_PREY_MOVEMENT:
-                all_inputs[0][1] = 0
-            all_inputs[0][1] += override
+                all_inputs[FOCUS_CREATURE][1] = 0
+            all_inputs[FOCUS_CREATURE][1] += override
         ######################################################################
         # END TESTING                                                        #
         ######################################################################
@@ -272,7 +271,8 @@ class Environment:
             if creature.alive:
                 creature.update_rotation_speed(-inputs[1])  # Negated because the screen is flipped
                 creature.rotate(delta_time)
-                creature.apply_force(self.DRAG_COEFFICIENT * (np.linalg.norm(creature.velocity) ** 2) * self.DRAG_DIRECTION, delta_time, self_motivated=False)
+                if np.linalg.norm(creature.velocity) > DRAG_MINIMUM_SPEED:
+                    creature.apply_force(copy_dir(None, -self.DRAG_COEFFICIENT * (np.linalg.norm(creature.velocity) ** 2) * NORMALIZE(creature.velocity), a=-creature.direction), delta_time, self_motivated=False)
                 creature.apply_force(np.array(inputs[0], dtype=self.DTYPE), delta_time)
                 creature.update_velocity(delta_time)
                 creature.update_position(delta_time)

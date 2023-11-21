@@ -108,7 +108,7 @@ def main():
     env = Environment.Environment(ENVIRONMENT_PARAMETERS, models)
     
     if DRAW:
-        FOCUS = 0  # Index of focused creature in environment's list
+        focus_creature = FOCUS_CREATURE  # Index of focused creature in environment's list
         focus_pos = []
 
     while running:
@@ -137,7 +137,7 @@ def main():
         ##############################################################################
         
         if DRAW:
-            screen.fill(BLACK)
+            screen.fill(BACKGROUND_COLOR)
         
         delta_time = min(1.0 / 60.0 * 1000, clock.tick(MAX_TPS))
         # print(delta_time * MAX_TPS / 1000)  # ~=1 if on target TPS
@@ -148,10 +148,13 @@ def main():
         # This is for testing.                                                           #
         ##################################################################################
         if DRAW:
-            focus_pos.append(env.creatures[FOCUS].position.tolist())
-            for i in range(len(focus_pos)):
-                pygame.draw.circle(screen, (np.array(GREEN, dtype=DTYPE) * i / len(focus_pos)).tolist(),
-                                   (int(focus_pos[i][0]), int(focus_pos[i][1])), 2)
+            if(env.creatures[focus_creature].alive):
+                focus_pos.append(env.creatures[focus_creature].position.tolist())
+            for i in range(min(len(focus_pos), FOCUS_PATH_LENGTH)):
+                pygame.draw.circle(screen, (np.array(GREEN, dtype=DTYPE) * i / min(len(focus_pos), FOCUS_PATH_LENGTH)).tolist(),
+                                   (int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][0]),
+                                    int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][1])),
+                                   2)
         ##################################################################################
         # End testing                                                                    #
         ##################################################################################

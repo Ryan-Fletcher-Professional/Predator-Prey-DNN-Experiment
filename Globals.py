@@ -15,6 +15,7 @@ SCREEN_HEIGHT = (__height * __size_coefficient) if __scale_to_window_size else (
 DTYPE = np.float64
 DRAW = True
 ALWAYS_OVERRIDE_PREY_MOVEMENT = True
+FOCUS_CREATURE = 0  # Index in environment.creatures
 PREY = -1.0
 UNKNOWN_TYPE = 0.0
 PREDATOR = 1.0
@@ -26,6 +27,7 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 GRAY = (100, 100, 100)
+BACKGROUND_COLOR = BLACK
 CREATURE_COLORS = { PREY: GREEN, PREDATOR: RED }
 OUT_OF_ENERGY = "out of energy"
 SUCCESSFUL_STEP = "success"
@@ -36,6 +38,9 @@ REFERENCE_ANGLE = [1.0, 0.0]
 STUN_TICK_TIME = 85  # ms : ~5 ticks at 60 TPS
 STUN_IGNORE_PUNISHMENT_QUOTIENT = 0.5  # multiplier for adding stun time when creature tries to move while already stunned
 NETWORK_OUTPUT_DEFAULT = [0.0, 0.0, 0.0]  # Mainly for dead creatures
+DRAG_COEFFICIENT = .01
+DRAG_MINIMUM_SPEED = (30 * 0.005) / 1000
+FOCUS_PATH_LENGTH = 1000
 
 # Constants and globals
 # <>_ATTRS = {
@@ -124,8 +129,7 @@ PREDATOR_NETWORK_HYPERPARAMETERS = {
 #     "DTYPE"             : np DTYPE        : for consistency; used in all numpy stuff
 # }
 ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
-    "DRAG_COEFFICIENT"  : 0,  # TUNE THIS (3e-10?)
-    "DRAG_DIRECTION"    : np.array([-1.0, 0.0], dtype=DTYPE),
+    "DRAG_COEFFICIENT"  : DRAG_COEFFICIENT,
     "MIN_TPS"           : MAX_TPS,  # Should probably match MAX_TPS
     "EAT_EPSILON"       : .15,
     "DTYPE"             : DTYPE,
