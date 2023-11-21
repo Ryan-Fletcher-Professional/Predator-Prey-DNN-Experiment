@@ -139,8 +139,8 @@ def main():
         if DRAW:
             screen.fill(BACKGROUND_COLOR)
         
-        delta_time = min(1.0 / 60.0 * 1000, clock.tick(MAX_TPS))
-        # print(delta_time * MAX_TPS / 1000)  # ~=1 if on target TPS
+        delta_time = min(1.0 / 60.0 * (1000 * TIME_QUOTIENT), clock.tick(MAX_TPS * TIME_QUOTIENT))
+        # print(delta_time * MAX_TPS / (1000 * TIME_QUOTIENT))  # ~=1 if on target TPS
         
         step_result = env.step(delta_time, screen=screen if DRAW else None)
         
@@ -155,6 +155,7 @@ def main():
                                    (int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][0]),
                                     int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][1])),
                                    2)
+            env.creatures[focus_creature].draw(screen)
         ##################################################################################
         # End testing                                                                    #
         ##################################################################################

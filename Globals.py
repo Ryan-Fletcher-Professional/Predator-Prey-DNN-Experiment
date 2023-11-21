@@ -14,12 +14,15 @@ SCREEN_WIDTH = (__width * __size_coefficient) if __scale_to_window_size else (DE
 SCREEN_HEIGHT = (__height * __size_coefficient) if __scale_to_window_size else (DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) / 2)
 DTYPE = np.float64
 DRAW = True
-ALWAYS_OVERRIDE_PREY_MOVEMENT = True
+ALWAYS_OVERRIDE_PREY_MOVEMENT = False
 FOCUS_CREATURE = 0  # Index in environment.creatures
 PREY = -1.0
 UNKNOWN_TYPE = 0.0
 PREDATOR = 1.0
-MAX_TPS = 60  # TODO: Should be increased to maximum stable value for experiments
+MAX_TPS = 60
+TIME_QUOTIENT = 1  # Increase this number to make everything run faster. Recommended to stick with 1 when drawing to pygame screen.
+                   # TODO: Implement properly (NOT YET DONE)
+                   # INCREASE THIS AND MIN_TPS TO MAXIMUM STABLE VALUE FOR EXPERIMENTS.
 ALL_PREY_EATEN = "ALL PREY_EATEN"
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -35,11 +38,11 @@ RECIPROCAL_MODE = "reciprocal"
 SUBTRACT_MODE = "subtract"
 USE_GPU = False
 REFERENCE_ANGLE = [1.0, 0.0]
-STUN_TICK_TIME = 85  # ms : ~5 ticks at 60 TPS
+STUN_TICK_TIME = (85 * 60) / MAX_TPS  # ms : currently ~5 ticks
 STUN_IGNORE_PUNISHMENT_QUOTIENT = 0.5  # multiplier for adding stun time when creature tries to move while already stunned
 NETWORK_OUTPUT_DEFAULT = [0.0, 0.0, 0.0]  # Mainly for dead creatures
-DRAG_COEFFICIENT = .01
-DRAG_MINIMUM_SPEED = (30 * 0.005) / 1000
+DRAG_COEFFICIENT = .015
+DRAG_MINIMUM_SPEED = 30 * .0025 / (MAX_TPS * TIME_QUOTIENT)
 FOCUS_PATH_LENGTH = 1000
 
 # Constants and globals
@@ -65,7 +68,7 @@ FOCUS_PATH_LENGTH = 1000
 #     "attrs"             : <>_ATTRS
 # }
 PREY_ATTRS = {
-    "fov"                       : 11 / 12,
+    "fov"                       : 5 / 6,
     "num_rays"                  : 23,
     "sight_range"               : 75,
     "mass"                      : 2.5,
@@ -74,10 +77,10 @@ PREY_ATTRS = {
     "max_backward_force"        : 3 / 1000,
     "max_lr_force"              : 2 / 1000,
     "max_rotate_force"          : 10 / 1000,
-    "max_speed"                 : 30 / 1000,
-    "max_rotate_speed"          : 2 * np.pi * (8 / 12) / 1000,
+    "max_speed"                 : 30 / (1000 * TIME_QUOTIENT),
+    "max_rotate_speed"          : 2 * np.pi * (8 / 12) / (1000 * TIME_QUOTIENT),
     "force_energy_quotient"     : 1,
-    "rotation_energy_quotient"  : 0.001  # ADJUST LATER
+    "rotation_energy_quotient"  : .01 / (2 * math.pi)
 }
 PREY_PARAMS = {
     "x"                 : (SCREEN_WIDTH // 2) + 150,
@@ -88,7 +91,7 @@ PREY_PARAMS = {
     "DTYPE"             : DTYPE
 }
 PREDATOR_ATTRS = {
-    "fov"                       : 6 / 12,
+    "fov"                       : 5 / 12,
     "num_rays"                  : 13,
     "sight_range"               : 100,
     "mass"                      : 5,
@@ -97,10 +100,10 @@ PREDATOR_ATTRS = {
     "max_backward_force"        : 3 / 1000,
     "max_lr_force"              : 1.5 / 1000,
     "max_rotate_force"          : 11.5 / 1000,
-    "max_speed"                 : 30 / 1000,
-    "max_rotate_speed"          : 2 * np.pi * (9 / 12) / 1000,
+    "max_speed"                 : 30 / (1000 * TIME_QUOTIENT),
+    "max_rotate_speed"          : 2 * np.pi * (9 / 12) / (1000 * TIME_QUOTIENT),
     "force_energy_quotient"     : 1,
-    "rotation_energy_quotient"  : 0.001  # ADJUST LATER
+    "rotation_energy_quotient"  : .01 / (2 * np.pi)
 }
 PREDATOR_PARAMS = {
     "x"                 : (SCREEN_WIDTH // 2) - 150,
@@ -120,10 +123,7 @@ PREDATOR_NETWORK_HYPERPARAMETERS = {
 }
 
 # ENVIRONMENT_PARAMETERS = {
-#     "DRAG_COEFFICIENT"  : positive number (can functionally be negative, but will violate thermodynamics)
-#     "DRAG_DIRECTION"    : np.array([number_a, number_b])
-#                           (negative number_a for drag, positive number_a for tailwind,
-#                            non-zero number_b for sidewind)
+#     "DRAG_COEFFICIENT"  : positive number
 #     "MIN_TPS"           : number          : for stability
 #     "EAT_EPSILON"       : number in [0,1] : proportion of overlap between creatures required for predation to occur
 #     "DTYPE"             : np DTYPE        : for consistency; used in all numpy stuff

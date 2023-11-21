@@ -75,6 +75,7 @@ class Creature:
                                                                         num=attrs["num_rays"], dtype=self.DTYPE)]
         self.model = model
         self.alive = True
+        self.applied_force_this_tick = False
     
     def update_rotation_speed(self, speed):
         """
@@ -90,17 +91,22 @@ class Creature:
         """
         energy_expenditure = abs(self.rotation_speed) * delta_time * self.rotation_energy_quotient
         # If creature tries to move when its energy is too low, it loses all its energy, can't move the way it wants, and is briefly stunned.
-        if self.energy < energy_expenditure:
-            energy_expenditure = self.energy
-            self.rotation_speed = 0.0
-            self.stun += STUN_TICK_TIME
-        elif (energy_expenditure > 0.0) and (self.stun > 0.0):
-            energy_expenditure = self.energy
-            self.rotation_speed = 0.0
+        stunned_this_tick = False
+        if(energy_expenditure > 0.0) and (self.stun > 0.0) and (STUN_IGNORE_PUNISHMENT_QUOTIENT > 0.0):
             self.stun += STUN_TICK_TIME * STUN_IGNORE_PUNISHMENT_QUOTIENT
-        elif energy_expenditure == 0.0:
+            energy_expenditure = self.energy
+            stunned_this_tick = True
+        elif (self.energy < energy_expenditure) and (self.stun == 0.0):
+            self.stun += STUN_TICK_TIME
+            energy_expenditure = self.energy
+            stunned_this_tick = True
+    
+        if self.stun > 0.0:
+            self.rotation_speed = 0.0
+        if (energy_expenditure == 0.0) or ((self.stun > 0.0) and not stunned_this_tick):
             self.stun = max(0, self.stun - delta_time)
             self.energy = min(self.initial_energy, self.energy + (abs(self.max_rotation_speed) * delta_time * self.rotation_energy_quotient))
+            
         self.energy -= energy_expenditure
         for ray in self.rays:
             ray.angle = (ray.angle + (self.rotation_speed * delta_time)) % (2 * np.pi)
@@ -116,30 +122,41 @@ class Creature:
                     [self.max_forward_force, self.max_sideways_force], dtype=self.DTYPE)
             energy_expenditure = np.linalg.norm(f) * self.force_energy_quotient
             # If creature tries to move when its energy is too low, it loses all its energy, can't move the way it wants, and is briefly stunned.
-            if self.energy < energy_expenditure:
-                energy_expenditure = self.energy
-                self.rotation_speed = 0.0
-                self.stun += STUN_TICK_TIME
-            elif (energy_expenditure > 0.0) and (self.stun > 0.0):
-                energy_expenditure = self.energy
-                self.rotation_speed = 0.0
+            stunned_this_tick = False
+            if(energy_expenditure > 0.0) and (self.stun > 0.0) and (STUN_IGNORE_PUNISHMENT_QUOTIENT > 0.0):
                 self.stun += STUN_TICK_TIME * STUN_IGNORE_PUNISHMENT_QUOTIENT
-            elif energy_expenditure == 0.0:
+                energy_expenditure = self.energy
+                stunned_this_tick = True
+            elif (self.energy < energy_expenditure) and (self.stun == 0.0):
+                self.stun += STUN_TICK_TIME
+                energy_expenditure = self.energy
+                stunned_this_tick = True
+        
+            if self.stun > 0.0:
+                self.rotation_speed = 0.0
+                f = np.array([0.0, 0.0])
+            if (energy_expenditure == 0.0) or ((self.stun > 0.0) and not stunned_this_tick):
                 self.stun = max(0, self.stun - delta_time)
                 self.energy = min(self.initial_energy, self.energy + (np.linalg.norm(np.array([max(self.max_forward_force, self.max_backward_force),
                                                                                             self.max_sideways_force]))
                                                                     * self.force_energy_quotient))
+            
             self.energy -= energy_expenditure
+        if np.linalg.norm(f) > 0.0:
+            self.applied_force_this_tick = True
         self.acceleration += copy_dir(None, f / self.mass, a=self.direction)
     
     def update_velocity(self, delta_time):
         """
         :param delta_time: float milliseconds
         """
-        self.velocity += self.acceleration * delta_time
         velocity_magnitude = np.linalg.norm(self.velocity) / delta_time
-        if velocity_magnitude > self.max_velocity:
-            self.velocity *= self.max_velocity / velocity_magnitude
+        if (velocity_magnitude <= DRAG_MINIMUM_SPEED) and not self.applied_force_this_tick:
+            self.velocity = np.array([0.0, 0.0])
+        else:
+            self.velocity += self.acceleration * delta_time
+            if velocity_magnitude > self.max_velocity:
+                self.velocity *= self.max_velocity / velocity_magnitude
     
     def update_position(self, delta_time):
         """
@@ -252,9 +269,9 @@ class Environment:
                 all_inputs[FOCUS_CREATURE][0] = override.tolist()
             override = 0.0
             if keys[pygame.K_LEFT]:
-                override += 2 * np.pi * (1 / 2) / 1000
+                override += 2 * np.pi * (1 / 2) / (1000 * TIME_QUOTIENT)
             if keys[pygame.K_RIGHT]:
-                override += -2 * np.pi * (1 / 2) / 1000
+                override += -2 * np.pi * (1 / 2) / (1000 * TIME_QUOTIENT)
             if keys[pygame.K_DOWN]:
                 override = -all_inputs[0][1]
             if ALWAYS_OVERRIDE_PREY_MOVEMENT:
@@ -268,10 +285,11 @@ class Environment:
         # Creature positions are updated here                                                                          #
         ################################################################################################################
         for creature, inputs in zip(self.creatures, all_inputs):
+            creature.applied_force_this_tick = False
             if creature.alive:
                 creature.update_rotation_speed(-inputs[1])  # Negated because the screen is flipped
                 creature.rotate(delta_time)
-                if np.linalg.norm(creature.velocity) > DRAG_MINIMUM_SPEED:
+                if (np.linalg.norm(creature.velocity) / delta_time) > DRAG_MINIMUM_SPEED:
                     creature.apply_force(copy_dir(None, -self.DRAG_COEFFICIENT * (np.linalg.norm(creature.velocity) ** 2) * NORMALIZE(creature.velocity), a=-creature.direction), delta_time, self_motivated=False)
                 creature.apply_force(np.array(inputs[0], dtype=self.DTYPE), delta_time)
                 creature.update_velocity(delta_time)
