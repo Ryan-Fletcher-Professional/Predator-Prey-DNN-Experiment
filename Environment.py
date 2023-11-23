@@ -2,10 +2,15 @@
 THIS FILE WRITTEN BY RYAN FLETCHER
 """
 
+import multiprocessing
+from multiprocessing import Process
+from queue import Empty
+import time
 import math
 import numpy as np
-import pygame
 from Globals import *
+if DRAW:
+    import pygame
 import main
 
 
@@ -76,6 +81,7 @@ class Creature:
         self.model = model
         self.alive = True
         self.applied_force_this_tick = False
+        self.motion_total = 0.0
     
     def update_rotation_speed(self, speed):
         """
@@ -162,6 +168,7 @@ class Creature:
         """
         :param delta_time: float milliseconds
         """
+        old_position = np.array(self.position)
         self.position += self.velocity * delta_time
         self.acceleration = 0
         if self.position[0] < 0:
@@ -172,6 +179,7 @@ class Creature:
             self.position[0] = -(SCREEN_WIDTH - self.position[0])
         if SCREEN_HEIGHT - self.position[1] < 0:
             self.position[1] = -(SCREEN_HEIGHT - self.position[1])
+        self.motion_total += np.linalg.norm(self.position - old_position)
     
     def draw(self, screen):
         for ray in self.rays:
@@ -207,6 +215,18 @@ class Creature:
             if (not (creature.id == self.id)) and in_any_angle_and_range and creature.alive:
                 can_see.append((creature.id, shortest_distance))
         return can_see
+    
+
+def worker(task_queue, inputs_queue, creatures):
+    while True:
+        try:
+            task = task_queue.get(block=False)
+            if task is None:
+                break
+            else:
+                creatures[task].model.get_inputs(queue=inputs_queue, index=task)
+        except Empty:
+            pass
 
 
 class Environment:
@@ -216,21 +236,33 @@ class Environment:
         self.EAT_EPSILON = env_params["EAT_EPSILON"]
         self.DTYPE = env_params["DTYPE"]
         self.creatures = []
+        self.steps = 0
         self.time = 0.0
         for model in models:
             self.creatures.append(Creature(model[0], model[1], creature_id=model[1].NN.id))
         for creature in self.creatures:
             creature.model.creature = creature
             creature.model.environment = self
+        if USE_MULTIPROCESSING:
+            self.task_queue = multiprocessing.Queue()
+            self.inputs_queue = multiprocessing.Queue()
+            self.expected_num_children = 0
+            print("...")
+            for _ in self.creatures:
+                self.expected_num_children += 1
+                process = Process(target=worker, args=(self.task_queue, self.inputs_queue, self.creatures))
+                process.start()
+            time.sleep(1)
+            print(f"Expect {self.expected_num_children} \"True\"s")
+            for process in multiprocessing.active_children():
+                print(process.is_alive())
+        print("... Beginning simulation")
+        time.sleep(1)
+        self.start_real_time = time.time()
     
-    def step(self, delta_time, screen=None):
-        # Removed in favor of stun punishments and energy recovery
-        # for creature in self.creatures:
-        #     if creature.energy <= 0:
-        #         print("Creature " + creature.id + " ran " + OUT_OF_ENERGY)
-        #         return "Creature " + creature.id + " ran " + OUT_OF_ENERGY
-        
-        all_creature_pairs = [(a, b) for idx, a in enumerate(self.creatures) for b in self.creatures[idx + 1:]]  # Got this from GeeksForGeeks
+    def step(self, delta_time, screen=None):        
+        # Predation
+        all_creature_pairs = [(a, b) for idx, a in enumerate(self.creatures) for b in self.creatures[idx + 1:]]  # From GeeksForGeeks
         for a, b in all_creature_pairs:
             if a.alive and b.alive and\
                (((a.model.type == PREY) and (b.model.type == PREDATOR)) or ((b.model.type == PREY) and (a.model.type == PREDATOR))) and\
@@ -246,60 +278,76 @@ class Environment:
             print(ALL_PREY_EATEN)
             return ALL_PREY_EATEN
         
-        all_inputs = [creature.model.get_inputs() for creature in self.creatures]
+        # Gather creature network feedback
+        if USE_MULTIPROCESSING:
+            all_inputs = [None]*len(self.creatures)
+            for i in range(len(self.creatures)):
+                self.task_queue.put(i)
+            while self.inputs_queue.qsize() < len(self.creatures):
+                time.sleep(delta_time / 100)
+            while not self.inputs_queue.empty():
+                result = self.inputs_queue.get()
+                all_inputs[result[0]] = result[1]
+        else:
+            all_inputs = [creature.model.get_inputs() for creature in self.creatures]
         
-        ######################################################################
-        # The following is for testing                                       #
-        ######################################################################
-        if self.creatures[FOCUS_CREATURE].alive:
-            override = np.array([0.0, 0.0], dtype=self.DTYPE)
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_w]:
-                override += np.array([1.0, 0.0], dtype=self.DTYPE)
-            if keys[pygame.K_a]:
-                override += np.array([0.0, -1.0], dtype=self.DTYPE)
-            if keys[pygame.K_s]:
-                override += np.array([-1.0, 0.0], dtype=self.DTYPE)
-            if keys[pygame.K_d]:
-                override += np.array([0.0, 1.0], dtype=self.DTYPE)
-            if keys[pygame.K_SPACE]:
-                self.creatures[FOCUS_CREATURE].velocity = np.array([0.0, 0.0], dtype=self.DTYPE)
-            override = NORMALIZE(override)
-            if np.linalg.norm(override) > 0 or ALWAYS_OVERRIDE_PREY_MOVEMENT:
-                all_inputs[FOCUS_CREATURE][0] = override.tolist()
-            override = 0.0
-            if keys[pygame.K_LEFT]:
-                override += 2 * np.pi * (1 / 2) / (1000 * TIME_QUOTIENT)
-            if keys[pygame.K_RIGHT]:
-                override += -2 * np.pi * (1 / 2) / (1000 * TIME_QUOTIENT)
-            if keys[pygame.K_DOWN]:
-                override = -all_inputs[0][1]
-            if ALWAYS_OVERRIDE_PREY_MOVEMENT:
-                all_inputs[FOCUS_CREATURE][1] = 0
-            all_inputs[FOCUS_CREATURE][1] += override
-        ######################################################################
-        # END TESTING                                                        #
-        ######################################################################
+        ########################################################################################
+        # The following is for testing                                                         #
+        ########################################################################################
+        if DRAW:
+            if self.creatures[FOCUS_CREATURE].alive:
+                override = np.array([0.0, 0.0], dtype=self.DTYPE)
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_w]:
+                    override += np.array([1.0, 0.0], dtype=self.DTYPE)
+                if keys[pygame.K_a]:
+                    override += np.array([0.0, -1.0], dtype=self.DTYPE)
+                if keys[pygame.K_s]:
+                    override += np.array([-1.0, 0.0], dtype=self.DTYPE)
+                if keys[pygame.K_d]:
+                    override += np.array([0.0, 1.0], dtype=self.DTYPE)
+                if keys[pygame.K_SPACE]:
+                    self.creatures[FOCUS_CREATURE].velocity = np.array([0.0, 0.0], dtype=self.DTYPE)
+                override = NORMALIZE(override)
+                if np.linalg.norm(override) > 0 or ALWAYS_OVERRIDE_PREY_MOVEMENT:
+                    all_inputs[FOCUS_CREATURE][0] = override.tolist()
+                override = 0.0
+                if keys[pygame.K_LEFT]:
+                    override += 2 * np.pi * (1 / 2) / 1000
+                if keys[pygame.K_RIGHT]:
+                    override += -2 * np.pi * (1 / 2) / 1000
+                if keys[pygame.K_DOWN]:
+                    override = -all_inputs[0][1]
+                if ALWAYS_OVERRIDE_PREY_MOVEMENT:
+                    all_inputs[FOCUS_CREATURE][1] = 0
+                all_inputs[FOCUS_CREATURE][1] += override
+        ########################################################################################
+        # END TESTING                                                                          #
+        ########################################################################################
         
-        ################################################################################################################
-        # Creature positions are updated here                                                                          #
-        ################################################################################################################
+        # Update creature positions
         for creature, inputs in zip(self.creatures, all_inputs):
             creature.applied_force_this_tick = False
             if creature.alive:
                 creature.update_rotation_speed(-inputs[1])  # Negated because the screen is flipped
                 creature.rotate(delta_time)
                 if (np.linalg.norm(creature.velocity) / delta_time) > DRAG_MINIMUM_SPEED:
-                    creature.apply_force(copy_dir(None, -self.DRAG_COEFFICIENT * (np.linalg.norm(creature.velocity) ** 2) * NORMALIZE(creature.velocity), a=-creature.direction), delta_time, self_motivated=False)
+                    creature.apply_force(copy_dir(None,
+                                                  -self.DRAG_COEFFICIENT * (np.linalg.norm(creature.velocity) ** 2) * NORMALIZE(creature.velocity),
+                                                  a=-creature.direction),
+                                         delta_time, self_motivated=False)
                 creature.apply_force(np.array(inputs[0], dtype=self.DTYPE), delta_time)
                 creature.update_velocity(delta_time)
                 creature.update_position(delta_time)
             if DRAW:
                 creature.draw(screen)
-        ################################################################################################################
-        ################################################################################################################
         
+        # Timekeeping
+        self.steps += 1
         self.time += delta_time
+        if self.steps % PRINT_PROGRESS_STEPS == 0:
+            current_real_time = time.time()
+            print(f"Step # {self.steps}:\n\tSimulation time: {(self.time / 1000):.3f}s\n\tReal time: {(current_real_time - self.start_real_time):.3f}s\n\tTotal motions: {[creature.motion_total for creature in self.creatures]}")
 
         return SUCCESSFUL_STEP
     

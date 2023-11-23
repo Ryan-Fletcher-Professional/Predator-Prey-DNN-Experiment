@@ -2,27 +2,39 @@ import math
 import numpy as np
 import pyautogui as ag
 
-__width, __height = ag.size()
 
-__scale_to_window_size = True
-__size_coefficient = 0.8
+DRAW = False
+# Currently multiprocessing is ~40x slower than serial network feeding :( Maybe it will be usefull for large quantities of creatures?
+USE_MULTIPROCESSING = (not DRAW) and False  # DO NOT REMOVE "(not DRAW) and"; multiprocessing interferes with pygame's loop
+__width, __height = ag.size()
+__scale_to_window_size = DRAW
+__draw_size_coefficient = 0.8
+__noscale_size_coefficient = 10
 DEFAULT_CREATURE_SIZE = 10
 NUM_TOTAL_CREATURES = 6  # Currently specified for only an even number of creatures!
+__override_noscale_size = (True, 1800, 1800)
 EXTERNAL_CHARACTERISTICS_PER_CREATURE = 3
 INTERNAL_CHARACTERISTICS_PER_CREATURE = 3
-SCREEN_WIDTH = (__width * __size_coefficient) if __scale_to_window_size else (DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) / 2)
-SCREEN_HEIGHT = (__height * __size_coefficient) if __scale_to_window_size else (DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) / 2)
+
+if __scale_to_window_size:
+    SCREEN_WIDTH = __width * __draw_size_coefficient
+    SCREEN_HEIGHT = __height * __draw_size_coefficient
+elif not __override_noscale_size[0]:
+    SCREEN_WIDTH = DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) * __noscale_size_coefficient / 2
+    SCREEN_HEIGHT = DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) * __noscale_size_coefficient / 2
+else:
+    SCREEN_WIDTH = __override_noscale_size[1]
+    SCREEN_HEIGHT = __override_noscale_size[2]
 DTYPE = np.float64
-DRAW = True
+PRINT_PROGRESS_STEPS = 100
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False
 FOCUS_CREATURE = 0  # Index in environment.creatures
 PREY = -1.0
 UNKNOWN_TYPE = 0.0
 PREDATOR = 1.0
-MAX_TPS = 60
-TIME_QUOTIENT = 1  # Increase this number to make everything run faster. Recommended to stick with 1 when drawing to pygame screen.
-                   # TODO: Implement properly (NOT YET DONE)
-                   # INCREASE THIS AND MIN_TPS TO MAXIMUM STABLE VALUE FOR EXPERIMENTS.
+MAX_TPS = 60  # Maximum physics ticks per SIMULATED second.
+              # Increasing this number will not increase simulation speed. Increase creature speed to do that.
+              # (Make sure to inrease MAX_TPS if needed for numerical stability.)
 ALL_PREY_EATEN = "ALL PREY_EATEN"
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -32,7 +44,6 @@ BLUE = (0, 0, 255)
 GRAY = (100, 100, 100)
 BACKGROUND_COLOR = BLACK
 CREATURE_COLORS = { PREY: GREEN, PREDATOR: RED }
-OUT_OF_ENERGY = "out of energy"
 SUCCESSFUL_STEP = "success"
 RECIPROCAL_MODE = "reciprocal"
 SUBTRACT_MODE = "subtract"
@@ -42,7 +53,7 @@ STUN_TICK_TIME = (85 * 60) / MAX_TPS  # ms : currently ~5 ticks
 STUN_IGNORE_PUNISHMENT_QUOTIENT = 0.5  # multiplier for adding stun time when creature tries to move while already stunned
 NETWORK_OUTPUT_DEFAULT = [0.0, 0.0, 0.0]  # Mainly for dead creatures
 DRAG_COEFFICIENT = .015
-DRAG_MINIMUM_SPEED = 30 * .0025 / (MAX_TPS * TIME_QUOTIENT)
+DRAG_MINIMUM_SPEED = 30 * .0025 / MAX_TPS
 FOCUS_PATH_LENGTH = 1000
 
 # Constants and globals
@@ -77,8 +88,8 @@ PREY_ATTRS = {
     "max_backward_force"        : 3 / 1000,
     "max_lr_force"              : 2 / 1000,
     "max_rotate_force"          : 10 / 1000,
-    "max_speed"                 : 30 / (1000 * TIME_QUOTIENT),
-    "max_rotate_speed"          : 2 * np.pi * (8 / 12) / (1000 * TIME_QUOTIENT),
+    "max_speed"                 : 30 / 1000,
+    "max_rotate_speed"          : 2 * np.pi * (8 / 12) / 1000,
     "force_energy_quotient"     : 1,
     "rotation_energy_quotient"  : .01 / (2 * math.pi)
 }
@@ -100,8 +111,8 @@ PREDATOR_ATTRS = {
     "max_backward_force"        : 3 / 1000,
     "max_lr_force"              : 1.5 / 1000,
     "max_rotate_force"          : 11.5 / 1000,
-    "max_speed"                 : 30 / (1000 * TIME_QUOTIENT),
-    "max_rotate_speed"          : 2 * np.pi * (9 / 12) / (1000 * TIME_QUOTIENT),
+    "max_speed"                 : 30 / 1000,
+    "max_rotate_speed"          : 2 * np.pi * (9 / 12) / 1000,
     "force_energy_quotient"     : 1,
     "rotation_energy_quotient"  : .01 / (2 * np.pi)
 }
@@ -130,7 +141,7 @@ PREDATOR_NETWORK_HYPERPARAMETERS = {
 # }
 ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
     "DRAG_COEFFICIENT"  : DRAG_COEFFICIENT,
-    "MIN_TPS"           : MAX_TPS,  # Should probably match MAX_TPS
+    "MIN_TPS"           : MAX_TPS,  # Used only to prevent pygame slowdowns. Should probably match MAX_TPS
     "EAT_EPSILON"       : .15,
     "DTYPE"             : DTYPE,
 }

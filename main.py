@@ -2,12 +2,14 @@
 THIS FILE WRITTEN BY RYAN FLETCHER AND
 """
 
-import pygame
+
+import multiprocessing
 import numpy as np
 import math
-# from multiprocessing import Process  # Interferes with PyGame. Use when not drawing?
-# import time
+import time
 from Globals import *
+if DRAW:
+    import pygame
 import Environment
 import PreyNetwork
 import PredatorNetwork
@@ -46,7 +48,7 @@ class Model:
         self.creature = None  # Instantiate dynamically
         self.environment = None  # Instantiate dynamically
     
-    def get_inputs(self):
+    def get_inputs(self, queue=None, index=None):
         state_info = self.environment.get_state_info()
         relative_state_info = {"time": state_info["time"]}
         creature_states = state_info["creature_states"]
@@ -78,16 +80,17 @@ class Model:
             })
             # MAKE SURE YOU UPDATE GLOBALS.EXTERNAL_CHARACTERISTICS_PER_CREATURE and GLOBALS.INTERNAL_CHARACTERISTICS_PER_CREATURE
         relative_state_info["creature_states"] = relative_creature_states
-        return self.NN.get_inputs(relative_state_info) if self.creature.alive else NETWORK_OUTPUT_DEFAULT
+        inputs = self.NN.get_inputs(relative_state_info) if self.creature.alive else NETWORK_OUTPUT_DEFAULT
+        if (queue is None) or (index is None):
+            return inputs
+        queue.put((index, inputs))
 
 
 def main():
-    pygame.init()
     if DRAW:
+        pygame.init()
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    clock = pygame.time.Clock()
-    
-    # queue = multiprocessing.Queue()  # multiprocessing interferes with pygame's loop
+        clock = pygame.time.Clock()
     
     running = True
     
@@ -112,61 +115,55 @@ def main():
         focus_pos = []
 
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        try:
+            if DRAW:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        running = False
+                screen.fill(BACKGROUND_COLOR)
+                delta_time = min(1.0 / env.MIN_TPS * 1000, clock.tick(MAX_TPS))
+                # print(delta_time * MAX_TPS / 1000)  # ~=1 if on target TPS
+            else:
+                
+                delta_time = 1.0 / MAX_TPS * 1000
+            
+            step_result = env.step(delta_time, screen=screen if DRAW else None)
+            
+            ##################################################################################
+            # This is for testing.                                                           #
+            ##################################################################################
+            if DRAW:
+                if(env.creatures[focus_creature].alive):
+                    focus_pos.append(env.creatures[focus_creature].position.tolist())
+                for i in range(min(len(focus_pos), FOCUS_PATH_LENGTH)):
+                    pygame.draw.circle(screen, (np.array(GREEN, dtype=DTYPE) * i / min(len(focus_pos), FOCUS_PATH_LENGTH)).tolist(),
+                                    (int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][0]),
+                                        int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][1])),
+                                    2)
+                env.creatures[focus_creature].draw(screen)
+            ##################################################################################
+            # End testing                                                                    #
+            ##################################################################################
+            
+            if step_result == ALL_PREY_EATEN:
                 running = False
-        
-        ##############################################################################
-        # multiprocessing interferes with pygame's loop                              #
-        ##############################################################################
-        # all_inputs = [None]*len(creatures)
-        #
-        # processes = []
-        # for c in range(len(creatures)):
-        #     process = Process(target=creatures[c].model.get_inputs, args=(queue, c))
-        #     process.start()
-        #     processes.append(process)
-        # while queue.qsize() < len(creatures):
-        #     time.sleep(.001)
-        # for process in processes:
-        #     process.join()
-        # while not queue.empty():
-        #     result = queue.get()
-        #     all_inputs[result[0]] = (result[1], result[2])
-        ##############################################################################
-        ##############################################################################
-        
-        if DRAW:
-            screen.fill(BACKGROUND_COLOR)
-        
-        delta_time = min(1.0 / 60.0 * (1000 * TIME_QUOTIENT), clock.tick(MAX_TPS * TIME_QUOTIENT))
-        # print(delta_time * MAX_TPS / (1000 * TIME_QUOTIENT))  # ~=1 if on target TPS
-        
-        step_result = env.step(delta_time, screen=screen if DRAW else None)
-        
-        ##################################################################################
-        # This is for testing.                                                           #
-        ##################################################################################
-        if DRAW:
-            if(env.creatures[focus_creature].alive):
-                focus_pos.append(env.creatures[focus_creature].position.tolist())
-            for i in range(min(len(focus_pos), FOCUS_PATH_LENGTH)):
-                pygame.draw.circle(screen, (np.array(GREEN, dtype=DTYPE) * i / min(len(focus_pos), FOCUS_PATH_LENGTH)).tolist(),
-                                   (int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][0]),
-                                    int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][1])),
-                                   2)
-            env.creatures[focus_creature].draw(screen)
-        ##################################################################################
-        # End testing                                                                    #
-        ##################################################################################
-        if step_result == ALL_PREY_EATEN or step_result.endswith(OUT_OF_ENERGY):
+
+            if DRAW:
+                pygame.display.flip()
+        except KeyboardInterrupt:
             running = False
 
-        if DRAW:
-            pygame.display.flip()
-
-    pygame.quit()
+    if DRAW:
+        pygame.quit()
+    if USE_MULTIPROCESSING:
+        for _ in range(env.expected_num_children):
+                env.task_queue.put(None)
+        time.sleep(.1)
+        for process in multiprocessing.active_children():
+                process.join()
+    print("Caught KeyboardInterrupt")
 
 
 if __name__ == "__main__":
+    print("Setting up...")
     main()
