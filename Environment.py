@@ -217,7 +217,10 @@ class Creature:
         return can_see
 
     def get_results(self):
-        return { "NETWORK" : self.model.NN }  # Add more analytics
+        self.model.epoch_losses.append(self.model.current_losses)
+        losses = self.model.current_losses
+        self.model.current_losses = []
+        return { "NETWORK" : self.model.NN, "LOSSES" : losses }  # Add more analytics
     
 
 def worker(task_queue, inputs_queue, creatures):
@@ -250,6 +253,7 @@ class Environment:
         for creature in self.creatures:
             creature.model.creature = creature
             creature.model.environment = self
+            creature.model.NN.max_distance = (float)(creature.sight_range)  # Convert to float for tensor typing compatibility
         if USE_MULTIPROCESSING:
             self.task_queue = multiprocessing.Queue()
             self.inputs_queue = multiprocessing.Queue()
@@ -277,7 +281,7 @@ class Environment:
                 a.alive = (a.model.type == PREDATOR)
                 b.alive = (b.model.type == PREDATOR)
         all_prey_eaten = True
-        for creature in filter(FILTER_OUT_PREDATOR_OBJECTS, self.creatures):
+        for creature in filter(FILTER_IN_PREY_OBJECTS, self.creatures):
             if creature.alive:
                 all_prey_eaten = False
                 break

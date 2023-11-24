@@ -21,13 +21,13 @@ class PredatorNetwork(Networks.CreatureFullyConnected):
                 this = creature_state
                 break
         flattened = [this["stun"], this["energy"], this["relative_speed"]]
-        for prey_state in filter(FILTER_OUT_PREDATOR_DICTS, state_info["creature_states"]):
+        for prey_state in filter(FILTER_IN_PREY_DICTS, state_info["creature_states"]):
             flattened += [prey_state["relative_speed"], prey_state["perceived_type"], prey_state["distance"]]
         return torch.FloatTensor(flattened)
     
     def loss(self, state_info):
-        creature_states = filter(FILTER_OUT_PREDATOR_DICTS, state_info["creature_states"])
-        closest = {"distance" : math.inf}
+        creature_states = filter(FILTER_IN_PERCEIVED_PREY_DICTS, state_info["creature_states"])
+        closest = {"distance" : self.max_distance}  # Instantiated dynamically according to creature's sight range
         for creature in creature_states:
             if creature["distance"] < closest["distance"]:
                 closest = creature

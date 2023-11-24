@@ -52,7 +52,7 @@ USE_GPU = False
 REFERENCE_ANGLE = [1.0, 0.0]
 STUN_TICK_TIME = (85 * 60) / MAX_TPS  # ms : currently ~5 ticks
 STUN_IGNORE_PUNISHMENT_QUOTIENT = 0.5  # multiplier for adding stun time when creature tries to move while already stunned
-NETWORK_OUTPUT_DEFAULT = [0.0, 0.0, 0.0]  # Mainly for dead creatures
+NETWORK_OUTPUT_DEFAULT = ([0.0, 0.0, 0.0], math.inf)  # Mainly for dead creatures
 DRAG_COEFFICIENT = .015
 DRAG_MINIMUM_SPEED = 30 * .0025 / MAX_TPS
 FOCUS_PATH_LENGTH = 1000
@@ -132,8 +132,8 @@ DEFAULT_PREDATOR_PARAMS = {
 
 PREY_HYPERPARAMS_NAME = "PREY_HYPERPARAMS"
 DEFAULT_PREY_NETWORK_HYPERPARAMETERS = {
-    "dimensions" : [-1, 10, 10, 10, 4],
-    "loss_mode"  : SUBTRACT_MODE,
+    "dimensions"    : [-1, 10, 10, 10, 4],
+    "loss_mode"     : SUBTRACT_MODE
 }
 PREDATOR_HYPERPARAMS_NAME = "PRED_HYPERPARAMS"
 DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS = {
@@ -195,17 +195,24 @@ def ANGLE_TO_VEC(angle, DTYPE=DTYPE):
     return np.array([math.cos(angle), math.sin(angle)], dtype=DTYPE)
 
 
-def FILTER_OUT_PREY_DICTS(creature):
+def FILTER_IN_PREDATOR_DICTS(creature):
     return creature["type"] == PREDATOR
 
 
-def FILTER_OUT_PREDATOR_DICTS(creature):
+def FILTER_IN_PREY_DICTS(creature):
     return creature["type"] == PREY
 
+def FILTER_IN_PERCEIVED_PREDATOR_DICTS(creature):
+    return creature["perceived_type"] == PREDATOR
 
-def FILTER_OUT_PREY_OBJECTS(creature):
+
+def FILTER_IN_PERCEIVED_PREY_DICTS(creature):
+    return creature["perceived_type"] == PREY
+
+
+def FILTER_IN_PREDATOR_OBJECTS(creature):
     return creature.model.type == PREDATOR
 
 
-def FILTER_OUT_PREDATOR_OBJECTS(creature):
+def FILTER_IN_PREY_OBJECTS(creature):
     return creature.model.type == PREY

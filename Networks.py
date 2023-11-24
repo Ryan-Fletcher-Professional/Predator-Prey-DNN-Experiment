@@ -25,13 +25,13 @@ class CreatureNetwork:
         """
         # Transform into a 1d array with environment info first then info about all other relevent creatures.
         input = self.transform(state_info)
-        scores = self.train_part34(self.model, self.optimizer, state_info, input)
+        scores, loss = self.train_part34(self.model, self.optimizer, state_info, input)
         # This goes elsewhere?
         # self.model.eval()
         # scores = None
         # with torch.no_grad():
         #     scores = self.model(input)            
-        return [[scores[0].item(), scores[1].item()], scores[2].item()]
+        return [[scores[0].item(), scores[1].item()], scores[2].item()], loss
     
     def train_part34(self, model, optimizer, state_info, input):
         """
@@ -67,7 +67,7 @@ class CreatureNetwork:
         #     check_accuracy_part34(loader_val, model)
         #     print()
         
-        return scores
+        return scores, loss.item()
 
 
 class CreatureFullyConnected(CreatureNetwork):

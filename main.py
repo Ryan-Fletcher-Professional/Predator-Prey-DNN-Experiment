@@ -52,6 +52,8 @@ class Model:
         self.fov = attrs["fov"]
         self.creature = None  # Instantiate dynamically
         self.environment = None  # Instantiate dynamically
+        self.epoch_losses = []
+        self.current_losses = []
     
     def get_inputs(self, queue=None, index=None):
         state_info = self.environment.get_state_info()
@@ -85,7 +87,8 @@ class Model:
             })
             # MAKE SURE YOU UPDATE GLOBALS.EXTERNAL_CHARACTERISTICS_PER_CREATURE and GLOBALS.INTERNAL_CHARACTERISTICS_PER_CREATURE
         relative_state_info["creature_states"] = relative_creature_states
-        inputs = self.NN.get_inputs(relative_state_info) if self.creature.alive else NETWORK_OUTPUT_DEFAULT
+        inputs, loss = self.NN.get_inputs(relative_state_info) if self.creature.alive else NETWORK_OUTPUT_DEFAULT
+        self.current_losses.append(loss)
         if (queue is None) or (index is None):
             return inputs
         queue.put((index, inputs))
@@ -101,6 +104,9 @@ def main():
         experiment[PREY_PARAMS_NAME]["attrs"] = copy.deepcopy(previous_experiment[PREY_PARAMS_NAME]["attrs"])
         experiment[PREDATOR_PARAMS_NAME]["attrs"] = copy.deepcopy(previous_experiment[PREDATOR_PARAMS_NAME]["attrs"])
         #############################################################################################################
+        
+        # COMMENT THE FOLLOWING LINE WHEN NOT TESTING
+        # experiment[MAX_SIM_SECONDS] = 30
         
         # Modify experiment parameters
         # In these experiments we're starting the creatures off with low energy so they can learn what it means.
@@ -214,8 +220,8 @@ def main():
         results["real_time"] = time.time() - env.start_real_time
         results["sim_time"] = env.time
         results["end_reason"] = end_reason
-        results[PREY] = [ creature.get_results() for creature in filter(FILTER_OUT_PREDATOR_OBJECTS, env.creatures) ]
-        results[PREDATOR] = [ creature.get_results() for creature in filter(FILTER_OUT_PREY_OBJECTS, env.creatures) ]
+        results[PREY] = [ creature.get_results() for creature in filter(FILTER_IN_PREY_OBJECTS, env.creatures) ]
+        results[PREDATOR] = [ creature.get_results() for creature in filter(FILTER_IN_PREDATOR_OBJECTS, env.creatures) ]
         experiment_results.append(results)
         
         if DRAW:
@@ -226,8 +232,13 @@ def main():
             time.sleep(.1)
             for process in multiprocessing.active_children():
                     process.join()
+        
+        if end_reason == "TERMINATED":
+            break
 
-    print(experiment_results)
+    # COMMENT THIS LINE EXCEPT FOR TESTING
+    # print(experiment_results)
+    
     total_sim_time = 0.0
     total_real_time = 0.0
     for i in range(len(experiment_results)):
@@ -244,9 +255,9 @@ def main():
             pickle.dump(experiment_results, file)
     with open("serialization_id.txt", "w") as id_file:
         id_file.write(idn[1:])
-        # To read experiment_results later:
-        # with open('serialized_data.pkl', 'rb') as file:
-        #   loaded_object = pickle.load(file)
+    # To read experiment_results later:
+    # with open('serialized_data' + idn + '.pkl', 'rb') as file:
+    #   loaded_object = pickle.load(file)
 
 
 if __name__ == "__main__":
