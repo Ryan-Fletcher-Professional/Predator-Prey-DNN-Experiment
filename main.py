@@ -94,7 +94,7 @@ class Model:
 def main():
     experiments = []
     previous_experiment = DEFAULT_EXPERIMENT
-    for i in range(5):#100):
+    for i in range(100):
         #############################################################################################################
         experiment = copy.deepcopy(previous_experiment)
         # For these two lines the copied index can be changed, but that's it.
@@ -235,11 +235,18 @@ def main():
         total_real_time += experiment_results[i]["real_time"]
         print(f"End reason {i + 1}: {experiment_results[i]['end_reason']}")
     print(f"Total simulated time:    {int((total_sim_time / 1000) // 3600)}h {int(((total_sim_time / 1000) % 3600) // 60)}m {((((total_sim_time / 1000) % 3600) % 60)):.3f}s\nTotal real time:         {int(total_real_time // 3600)}h {int((total_real_time % 3600) // 60)}m {(((total_real_time % 3600) % 60)):.3f}s")
-    with open('serialized_data.pkl', 'wb') as file:
-        pickle.dump(experiment_results, file)
-    # To read experiment_results later:
-    # with open('serialized_data.pkl', 'rb') as file:
-    #   loaded_object = pickle.load(file)
+    idn = ""
+    with open("serialization_id.txt", "rb") as id_file:
+        idn = "_" + str(int(id_file.readlines()[0]) + int(random.random() * 100) + 1)
+                                                    # This randomness makes it extraordinarily unlikely that we'll make
+                                                    # colliding filenames even if we run experiments concurrently on different machines.
+        with open('serialized_data' + idn + '.pkl', 'wb') as file:
+            pickle.dump(experiment_results, file)
+    with open("serialization_id.txt", "w") as id_file:
+        id_file.write(idn[1:])
+        # To read experiment_results later:
+        # with open('serialized_data.pkl', 'rb') as file:
+        #   loaded_object = pickle.load(file)
 
 
 if __name__ == "__main__":
