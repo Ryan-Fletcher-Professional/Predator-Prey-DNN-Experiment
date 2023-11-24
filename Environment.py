@@ -164,7 +164,7 @@ class Creature:
             if velocity_magnitude > self.max_velocity:
                 self.velocity *= self.max_velocity / velocity_magnitude
     
-    def update_position(self, delta_time):
+    def update_position(self, env, delta_time):
         """
         :param delta_time: float milliseconds
         """
@@ -172,13 +172,13 @@ class Creature:
         self.position += self.velocity * delta_time
         self.acceleration = 0
         if self.position[0] < 0:
-            self.position[0] = SCREEN_WIDTH + self.position[0]
+            self.position[0] = env.screen_width + self.position[0]
         if self.position[1] < 0:
-            self.position[1] = SCREEN_HEIGHT + self.position[1]
-        if SCREEN_WIDTH - self.position[0] < 0:
-            self.position[0] = -(SCREEN_WIDTH - self.position[0])
-        if SCREEN_HEIGHT - self.position[1] < 0:
-            self.position[1] = -(SCREEN_HEIGHT - self.position[1])
+            self.position[1] = env.screen_height + self.position[1]
+        if env.screen_width - self.position[0] < 0:
+            self.position[0] = -(env.screen_width - self.position[0])
+        if env.screen_height - self.position[1] < 0:
+            self.position[1] = -(env.screen_height - self.position[1])
         self.motion_total += np.linalg.norm(self.position - old_position)
     
     def draw(self, screen):
@@ -194,13 +194,13 @@ class Creature:
     def see_others(self, env):
         positions = [self.position]
         if self.position[0] - self.sight_range < 0:
-            positions.append([SCREEN_WIDTH + self.position[0], self.position[1]])
+            positions.append([env.screen_width + self.position[0], self.position[1]])
         if self.position[1] - self.sight_range < 0:
-            positions.append([self.position[0], SCREEN_HEIGHT + self.position[1]])
-        if SCREEN_WIDTH - self.position[0] < self.sight_range:
-            positions.append([-(SCREEN_WIDTH - self.position[0]), self.position[1]])
-        if SCREEN_HEIGHT - self.position[1] < self.sight_range:
-            positions.append([self.position[0], -(SCREEN_HEIGHT - self.position[1])])
+            positions.append([self.position[0], env.screen_height + self.position[1]])
+        if env.screen_width - self.position[0] < self.sight_range:
+            positions.append([-(env.screen_width - self.position[0]), self.position[1]])
+        if env.screen_height - self.position[1] < self.sight_range:
+            positions.append([self.position[0], -(env.screen_height - self.position[1])])
         can_see = []
         for creature in env.creatures:
             in_any_angle_and_range = False
@@ -215,6 +215,9 @@ class Creature:
             if (not (creature.id == self.id)) and in_any_angle_and_range and creature.alive:
                 can_see.append((creature.id, shortest_distance))
         return can_see
+
+    def get_results(self):
+        return { "NETWORK" : self.model.NN }  # Add more analytics
     
 
 def worker(task_queue, inputs_queue, creatures):
@@ -235,6 +238,10 @@ class Environment:
         self.MIN_TPS = env_params["MIN_TPS"]
         self.EAT_EPSILON = env_params["EAT_EPSILON"]
         self.DTYPE = env_params["DTYPE"]
+        self.num_preys = env_params["num_preys"]
+        self.num_predators = env_params["num_predators"]
+        self.screen_width = env_params["screen_width"]
+        self.screen_height = env_params["screen_height"]
         self.creatures = []
         self.steps = 0
         self.time = 0.0
@@ -248,7 +255,7 @@ class Environment:
             self.inputs_queue = multiprocessing.Queue()
             self.expected_num_children = 0
             print("...")
-            for _ in self.creatures:
+            for _ in range(NUM_SUBPROCESSES):
                 self.expected_num_children += 1
                 process = Process(target=worker, args=(self.task_queue, self.inputs_queue, self.creatures))
                 process.start()
@@ -258,7 +265,7 @@ class Environment:
                 print(process.is_alive())
         print("... Beginning simulation")
         time.sleep(1)
-        self.start_real_time = time.time()
+        self.start_real_time = time.time()  # Currently overridden in Main.main()
     
     def step(self, delta_time, screen=None):        
         # Predation
@@ -338,7 +345,7 @@ class Environment:
                                          delta_time, self_motivated=False)
                 creature.apply_force(np.array(inputs[0], dtype=self.DTYPE), delta_time)
                 creature.update_velocity(delta_time)
-                creature.update_position(delta_time)
+                creature.update_position(self, delta_time)
             if DRAW:
                 creature.draw(screen)
         

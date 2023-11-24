@@ -4,8 +4,11 @@ THIS FILE WRITTEN BY RYAN FLETCHER AND
 
 
 import multiprocessing
+import pickle
 import numpy as np
 import math
+import random
+import copy
 import time
 from Globals import *
 if DRAW:
@@ -26,13 +29,15 @@ def get_id():
 
 
 class Model:
-    def __init__(self, creature_type, attrs):
+    def __init__(self, creature_type, attrs, hyperparameters, network=None):
         self.type = creature_type
         new_id = get_id()
-        if creature_type == PREY:
-            self.NN = PreyNetwork.PreyNetwork(PREY_NETWORK_HYPERPARAMETERS, new_id)
+        if not (network is None):
+            self.NN = network
+        elif creature_type == PREY:
+            self.NN = PreyNetwork.PreyNetwork(hyperparameters, new_id)
         elif creature_type == PREDATOR:
-            self.NN = PredatorNetwork.PredatorNetwork(PREDATOR_NETWORK_HYPERPARAMETERS, new_id)
+            self.NN = PredatorNetwork.PredatorNetwork(hyperparameters, new_id)
         else:
             self.NN = None
         self.sight_range = attrs["sight_range"]
@@ -87,81 +92,154 @@ class Model:
 
 
 def main():
-    if DRAW:
-        pygame.init()
-        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        clock = pygame.time.Clock()
-    
-    running = True
-    
-    # Currently specified relative to the manually-set default x and y in <>__PARAMS in Globals
-    PREY_NETWORK_HYPERPARAMETERS["dimensions"][0] = INTERNAL_CHARACTERISTICS_PER_CREATURE +\
-                                                    ((NUM_TOTAL_CREATURES // 2) * EXTERNAL_CHARACTERISTICS_PER_CREATURE)
-                                                    # "self" plus enemies
-    PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"][0] = PREY_NETWORK_HYPERPARAMETERS["dimensions"][0]
-    models = [(PREY_PARAMS.copy(), Model(PREY, PREY_ATTRS)) for __ in range(NUM_TOTAL_CREATURES // 2)] +\
-             [(PREDATOR_PARAMS.copy(), Model(PREDATOR, PREDATOR_ATTRS)) for __ in range(NUM_TOTAL_CREATURES // 2)]
-    for i in range(1, NUM_TOTAL_CREATURES // 2):
-        models[i][0]["x"] += PREY_ATTRS["size"] * 1.25
-        models[i][0]["y"] += PREY_ATTRS["size"] * 1.25
-    for i in range(NUM_TOTAL_CREATURES // 2, NUM_TOTAL_CREATURES):
-        models[i][0]["x"] -= PREDATOR_ATTRS["size"] * 1.25
-        models[i][0]["y"] -= PREDATOR_ATTRS["size"] * 1.25
-    
-    env = Environment.Environment(ENVIRONMENT_PARAMETERS, models)
-    
-    if DRAW:
-        focus_creature = FOCUS_CREATURE  # Index of focused creature in environment's list
-        focus_pos = []
+    experiments = []
+    previous_experiment = DEFAULT_EXPERIMENT
+    for i in range(5):#100):
+        #############################################################################################################
+        experiment = copy.deepcopy(previous_experiment)
+        # For these two lines the copied index can be changed, but that's it.
+        experiment[PREY_PARAMS_NAME]["attrs"] = copy.deepcopy(previous_experiment[PREY_PARAMS_NAME]["attrs"])
+        experiment[PREDATOR_PARAMS_NAME]["attrs"] = copy.deepcopy(previous_experiment[PREDATOR_PARAMS_NAME]["attrs"])
+        #############################################################################################################
+        
+        # Modify experiment parameters
+        # In these experiments we're starting the creatures off with low energy so they can learn what it means.
+        # We're also starting with a smaller screen size so loss values are bigger early on to encourage learning control.
+        experiment[PREY_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.09, i))  # Should hit 100 at the 55th experiment
+        experiment[PREDATOR_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.09, i))  # Should hit 100 at the 55th experiment
+        experiment[ENV_PARAMS_NAME]["screen_width"] = min(DEFAULT_SCREEN_WIDTH, 300 * ((i / 4.0) + 1))
+        experiment[ENV_PARAMS_NAME]["screen_height"] = min(DEFAULT_SCREEN_HEIGHT, 300 * ((i / 4.0) + 1))
+        experiment[PREY_HYPERPARAMS_NAME]["dimensions"][0] = INTERNAL_CHARACTERISTICS_PER_CREATURE +\
+                                                             ((experiment[ENV_PARAMS_NAME]["num_predators"]) * EXTERNAL_CHARACTERISTICS_PER_CREATURE)
+                                                             # "self" plus enemies
+        experiment[PREDATOR_HYPERPARAMS_NAME]["dimensions"][0] = INTERNAL_CHARACTERISTICS_PER_CREATURE +\
+                                                                 ((experiment[ENV_PARAMS_NAME]["num_preys"]) * EXTERNAL_CHARACTERISTICS_PER_CREATURE)
+                                                                 # "self" plus enemies
+        
+        #############################################################################################################
+        experiments.append(experiment)
+        previous_experiment = experiment
+        #############################################################################################################
+        
+    experiment_results = []
+    for i in range(len(experiments)):
+        print(f"Starting experiment {i + 1}")
+        experiment = experiments[i]
+        
+        if DRAW:
+            pygame.init()
+            screen = pygame.display.set_mode((experiment[ENV_PARAMS_NAME["screen_width"]], experiment[ENV_PARAMS_NAME["screen_height"]]))
+            clock = pygame.time.Clock()
+        
+        running = True
+        
+        # Currently specified relative to the manually-set default x and y in <>__PARAMS in Globals
+        num_preys = experiment[ENV_PARAMS_NAME]["num_preys"]
+        num_predators = experiment[ENV_PARAMS_NAME]["num_predators"]
+        models = [(copy.deepcopy(experiment[PREY_PARAMS_NAME]), Model(PREY, experiment[PREY_ATTRS_NAME], experiment[PREY_HYPERPARAMS_NAME], network=None if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREY][j % len(experiment_results[i - 1][PREY])]["NETWORK"])) for j in range(num_preys)] +\
+                 [(copy.deepcopy(experiment[PREDATOR_PARAMS_NAME]), Model(PREDATOR, experiment[PREDATOR_ATTRS_NAME], experiment[PREDATOR_HYPERPARAMS_NAME], network=None if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREDATOR][j % len(experiment_results[i - 1][PREDATOR])]["NETWORK"])) for j in range(num_predators)]
+        
+        env = Environment.Environment(experiment[ENV_PARAMS_NAME], models)
+        
+        screen_width = env.screen_width
+        screen_height = env.screen_height
+        for i in range(num_preys + num_predators):
+            tryX = None
+            tryY = None
+            too_close = True
+            while too_close:
+                tryX = 1 + (random.random() * (screen_width - 2))
+                tryY = 1 + (random.random() * (screen_height - 2))
+                too_close = False
+                for model in models:
+                    if np.linalg.norm(np.array([tryX, tryY], dtype=experiment[ENV_PARAMS_NAME]["DTYPE"]) - np.array([model[0]["x"], model[0]["y"]], dtype=experiment[ENV_PARAMS_NAME]["DTYPE"])) < DEFAULT_CREATURE_SIZE + PLACEMENT_BUFFER:
+                        too_close = True
+                        break
+            models[i][0]["x"] = tryX
+            models[i][0]["y"] = tryY
+        
+        if DRAW:
+            focus_creature = FOCUS_CREATURE  # Index of focused creature in environment's list
+            focus_pos = []
+        
+        env.start_real_time = time.time()
 
-    while running:
-        try:
-            if DRAW:
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        running = False
-                screen.fill(BACKGROUND_COLOR)
-                delta_time = min(1.0 / env.MIN_TPS * 1000, clock.tick(MAX_TPS))
-                # print(delta_time * MAX_TPS / 1000)  # ~=1 if on target TPS
-            else:
+        end_reason = None
+        while running:
+            try:
+                if DRAW:
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            running = False
+                    screen.fill(BACKGROUND_COLOR)
+                    delta_time = min(1.0 / env.MIN_TPS * 1000, clock.tick(MAX_TPS))
+                    # print(delta_time * MAX_TPS / 1000)  # ~=1 if on target TPS
+                else:
+                    
+                    delta_time = 1.0 / MAX_TPS * 1000
                 
-                delta_time = 1.0 / MAX_TPS * 1000
-            
-            step_result = env.step(delta_time, screen=screen if DRAW else None)
-            
-            ##################################################################################
-            # This is for testing.                                                           #
-            ##################################################################################
-            if DRAW:
-                if(env.creatures[focus_creature].alive):
-                    focus_pos.append(env.creatures[focus_creature].position.tolist())
-                for i in range(min(len(focus_pos), FOCUS_PATH_LENGTH)):
-                    pygame.draw.circle(screen, (np.array(GREEN, dtype=DTYPE) * i / min(len(focus_pos), FOCUS_PATH_LENGTH)).tolist(),
-                                    (int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][0]),
-                                        int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][1])),
-                                    2)
-                env.creatures[focus_creature].draw(screen)
-            ##################################################################################
-            # End testing                                                                    #
-            ##################################################################################
-            
-            if step_result == ALL_PREY_EATEN:
+                step_result = env.step(delta_time, screen=screen if DRAW else None)
+                
+                ##################################################################################
+                # This is for testing.                                                           #
+                ##################################################################################
+                if DRAW:
+                    if(env.creatures[focus_creature].alive):
+                        focus_pos.append(env.creatures[focus_creature].position.tolist())
+                    for i in range(min(len(focus_pos), FOCUS_PATH_LENGTH)):
+                        pygame.draw.circle(screen, (np.array(GREEN, dtype=DTYPE) * i / min(len(focus_pos), FOCUS_PATH_LENGTH)).tolist(),
+                                        (int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][0]),
+                                            int(focus_pos[max(0, len(focus_pos) - FOCUS_PATH_LENGTH) + i][1])),
+                                        2)
+                    env.creatures[focus_creature].draw(screen)
+                ##################################################################################
+                # End testing                                                                    #
+                ##################################################################################
+                
+                if step_result == ALL_PREY_EATEN:
+                    running = False
+                    end_reason = ALL_PREY_EATEN
+
+                if DRAW:
+                    pygame.display.flip()
+            except KeyboardInterrupt:
                 running = False
+                end_reason = "TERMINATED"
+                print("Caught KeyboardInterrupt")
+            if (env.time / 1000) >= experiment[MAX_SIM_SECONDS]:
+                running = False
+                end_reason = MAX_SIM_SECONDS
+        
+        results = {}
+        results["real_time"] = time.time() - env.start_real_time
+        results["sim_time"] = env.time
+        results["end_reason"] = end_reason
+        results[PREY] = [ creature.get_results() for creature in filter(FILTER_OUT_PREDATOR_OBJECTS, env.creatures) ]
+        results[PREDATOR] = [ creature.get_results() for creature in filter(FILTER_OUT_PREY_OBJECTS, env.creatures) ]
+        experiment_results.append(results)
+        
+        if DRAW:
+            pygame.quit()
+        if USE_MULTIPROCESSING:
+            for _ in range(env.expected_num_children):
+                    env.task_queue.put(None)
+            time.sleep(.1)
+            for process in multiprocessing.active_children():
+                    process.join()
 
-            if DRAW:
-                pygame.display.flip()
-        except KeyboardInterrupt:
-            running = False
-
-    if DRAW:
-        pygame.quit()
-    if USE_MULTIPROCESSING:
-        for _ in range(env.expected_num_children):
-                env.task_queue.put(None)
-        time.sleep(.1)
-        for process in multiprocessing.active_children():
-                process.join()
-    print("Caught KeyboardInterrupt")
+    print(experiment_results)
+    total_sim_time = 0.0
+    total_real_time = 0.0
+    for i in range(len(experiment_results)):
+        total_sim_time += experiment_results[i]["sim_time"]
+        total_real_time += experiment_results[i]["real_time"]
+        print(f"End reason {i + 1}: {experiment_results[i]['end_reason']}")
+    print(f"Total simulated time:    {int((total_sim_time / 1000) // 3600)}h {int(((total_sim_time / 1000) % 3600) // 60)}m {((((total_sim_time / 1000) % 3600) % 60)):.3f}s\nTotal real time:         {int(total_real_time // 3600)}h {int((total_real_time % 3600) // 60)}m {(((total_real_time % 3600) % 60)):.3f}s")
+    with open('serialized_data.pkl', 'wb') as file:
+        pickle.dump(experiment_results, file)
+    # To read experiment_results later:
+    # with open('serialized_data.pkl', 'rb') as file:
+    #   loaded_object = pickle.load(file)
 
 
 if __name__ == "__main__":

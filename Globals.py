@@ -11,22 +11,23 @@ __scale_to_window_size = DRAW
 __draw_size_coefficient = 0.8
 __noscale_size_coefficient = 10
 DEFAULT_CREATURE_SIZE = 10
-NUM_TOTAL_CREATURES = 6  # Currently specified for only an even number of creatures!
+PLACEMENT_BUFFER = 2
+DEFAULT_NUM_TOTAL_CREATURES = 6
 __override_noscale_size = (True, 1800, 1800)
 EXTERNAL_CHARACTERISTICS_PER_CREATURE = 3
 INTERNAL_CHARACTERISTICS_PER_CREATURE = 3
 
 if __scale_to_window_size:
-    SCREEN_WIDTH = __width * __draw_size_coefficient
-    SCREEN_HEIGHT = __height * __draw_size_coefficient
+    DEFAULT_SCREEN_WIDTH = __width * __draw_size_coefficient
+    DEFAULT_SCREEN_HEIGHT = __height * __draw_size_coefficient
 elif not __override_noscale_size[0]:
-    SCREEN_WIDTH = DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) * __noscale_size_coefficient / 2
-    SCREEN_HEIGHT = DEFAULT_CREATURE_SIZE * (NUM_TOTAL_CREATURES ** 2) * __noscale_size_coefficient / 2
+    DEFAULT_SCREEN_WIDTH = DEFAULT_CREATURE_SIZE * (DEFAULT_NUM_TOTAL_CREATURES ** 2) * __noscale_size_coefficient / 2
+    DEFAULT_SCREEN_HEIGHT = DEFAULT_CREATURE_SIZE * (DEFAULT_NUM_TOTAL_CREATURES ** 2) * __noscale_size_coefficient / 2
 else:
-    SCREEN_WIDTH = __override_noscale_size[1]
-    SCREEN_HEIGHT = __override_noscale_size[2]
+    DEFAULT_SCREEN_WIDTH = __override_noscale_size[1]
+    DEFAULT_SCREEN_HEIGHT = __override_noscale_size[2]
 DTYPE = np.float64
-PRINT_PROGRESS_STEPS = 100
+PRINT_PROGRESS_STEPS = 900
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False
 FOCUS_CREATURE = 0  # Index in environment.creatures
 PREY = -1.0
@@ -78,7 +79,8 @@ FOCUS_PATH_LENGTH = 1000
 #     "initial_direction" : positive number in [0,2pi) : starting rotation
 #     "attrs"             : <>_ATTRS
 # }
-PREY_ATTRS = {
+PREY_ATTRS_NAME = "PREY_ATTRS"
+DEFAULT_PREY_ATTRS = {
     "fov"                       : 5 / 6,
     "num_rays"                  : 23,
     "sight_range"               : 75,
@@ -93,15 +95,17 @@ PREY_ATTRS = {
     "force_energy_quotient"     : 1,
     "rotation_energy_quotient"  : .01 / (2 * math.pi)
 }
-PREY_PARAMS = {
-    "x"                 : (SCREEN_WIDTH // 2) + 150,
-    "y"                 : (SCREEN_HEIGHT // 2) + 150,
+PREY_PARAMS_NAME = "PREY_PARAMS"
+DEFAULT_PREY_PARAMS = {
+    "x"                 : (DEFAULT_SCREEN_WIDTH // 2) + 150,
+    "y"                 : (DEFAULT_SCREEN_HEIGHT // 2) + 150,
     "initial_direction" : 0.0,
     "initial_energy"    : 100.0,
-    "attrs"             : PREY_ATTRS,
+    "attrs"             : DEFAULT_PREY_ATTRS,
     "DTYPE"             : DTYPE
 }
-PREDATOR_ATTRS = {
+PREDATOR_ATTRS_NAME = "PRED_ATTRS"
+DEFAULT_PREDATOR_ATTRS = {
     "fov"                       : 5 / 12,
     "num_rays"                  : 13,
     "sight_range"               : 100,
@@ -116,20 +120,23 @@ PREDATOR_ATTRS = {
     "force_energy_quotient"     : 1,
     "rotation_energy_quotient"  : .01 / (2 * np.pi)
 }
-PREDATOR_PARAMS = {
-    "x"                 : (SCREEN_WIDTH // 2) - 150,
-    "y"                 : (SCREEN_HEIGHT // 2) - 150,
+PREDATOR_PARAMS_NAME = "PRED_PARAMS"
+DEFAULT_PREDATOR_PARAMS = {
+    "x"                 : (DEFAULT_SCREEN_WIDTH // 2) - 150,
+    "y"                 : (DEFAULT_SCREEN_HEIGHT // 2) - 150,
     "initial_direction" : 0.0,
     "initial_energy"    : 100.0,
-    "attrs"             : PREDATOR_ATTRS,
+    "attrs"             : DEFAULT_PREDATOR_ATTRS,
     "DTYPE"             : DTYPE
 }
 
-PREY_NETWORK_HYPERPARAMETERS = {
+PREY_HYPERPARAMS_NAME = "PREY_HYPERPARAMS"
+DEFAULT_PREY_NETWORK_HYPERPARAMETERS = {
     "dimensions" : [-1, 10, 10, 10, 4],
     "loss_mode"  : SUBTRACT_MODE,
 }
-PREDATOR_NETWORK_HYPERPARAMETERS = {
+PREDATOR_HYPERPARAMS_NAME = "PRED_HYPERPARAMS"
+DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS = {
     "dimensions" : [-1, 10, 10, 10, 4]
 }
 
@@ -139,12 +146,32 @@ PREDATOR_NETWORK_HYPERPARAMETERS = {
 #     "EAT_EPSILON"       : number in [0,1] : proportion of overlap between creatures required for predation to occur
 #     "DTYPE"             : np DTYPE        : for consistency; used in all numpy stuff
 # }
-ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
+ENV_PARAMS_NAME = "ENV_PARAMS"
+DEFAULT_ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
     "DRAG_COEFFICIENT"  : DRAG_COEFFICIENT,
     "MIN_TPS"           : MAX_TPS,  # Used only to prevent pygame slowdowns. Should probably match MAX_TPS
     "EAT_EPSILON"       : .15,
     "DTYPE"             : DTYPE,
+    "screen_width"      : DEFAULT_SCREEN_WIDTH,
+    "screen_height"     : DEFAULT_SCREEN_HEIGHT,
+    "num_preys"         : 3,
+    "num_predators"     : 3
 }
+
+NUM_TOTAL_CREATURES = DEFAULT_ENVIRONMENT_PARAMETERS["num_preys"] + DEFAULT_ENVIRONMENT_PARAMETERS["num_predators"]
+NUM_SUBPROCESSES = NUM_TOTAL_CREATURES
+
+EXPERIMENT_LABELS = [PREY_ATTRS_NAME, PREY_PARAMS_NAME, PREY_HYPERPARAMS_NAME,
+                     PREDATOR_ATTRS_NAME, PREDATOR_PARAMS_NAME, PREDATOR_HYPERPARAMS_NAME,
+                     ENV_PARAMS_NAME]
+EXPERIMENT_DICTS = [DEFAULT_PREY_ATTRS, DEFAULT_PREY_PARAMS, DEFAULT_PREY_NETWORK_HYPERPARAMETERS,
+                    DEFAULT_PREDATOR_ATTRS, DEFAULT_PREDATOR_PARAMS, DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS,
+                    DEFAULT_ENVIRONMENT_PARAMETERS]
+
+KEEP_WEIGHTS = "KEEP_WEIGHTS"
+MAX_SIM_SECONDS = "MAX_SIM_SECONDS"
+DEFAULT_EXPERIMENT = { **{ label : dictionary for label, dictionary in zip(EXPERIMENT_LABELS, EXPERIMENT_DICTS) },
+                       **{ KEEP_WEIGHTS : True, MAX_SIM_SECONDS : 1800 } }
 
 
 def NORMALIZE(v):
