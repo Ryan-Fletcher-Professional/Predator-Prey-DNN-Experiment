@@ -246,11 +246,12 @@ def main():
         total_real_time += experiment_results[i]["real_time"]
         print(f"End reason {i + 1}: {experiment_results[i]['end_reason']}")
     print(f"Total simulated time:    {int((total_sim_time / 1000) // 3600)}h {int(((total_sim_time / 1000) % 3600) // 60)}m {((((total_sim_time / 1000) % 3600) % 60)):.3f}s\nTotal real time:         {int(total_real_time // 3600)}h {int((total_real_time % 3600) // 60)}m {(((total_real_time % 3600) % 60)):.3f}s")
-    idn = ""
-    with open("serialization_id.txt", "rb") as id_file:
-        idn = "_" + str(int(time.time() - 1701300000))
-        with open('serialized_data' + idn + '.pkl', 'wb') as file:
-            pickle.dump(experiment_results, file)
+    
+    idn = "_" + str(int(time.time() - 1701300000))
+    filename = 'serialized_data' + idn + '.pkl'
+    print("Serialized file name:\n\t" + filename)
+    with open(filename, 'wb') as file:
+        pickle.dump(experiment_results, file)
     # To read experiment_results later:
     # with open('serialized_data' + idn + '.pkl', 'rb') as file:
     #   loaded_object = pickle.load(file)
