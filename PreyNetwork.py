@@ -1,5 +1,5 @@
 """
-THIS FILE WRITTEN BY RYAN FLETCHER AND SANATH UPADHYA
+THIS FILE WRITTEN BY RYAN FLETCHER, SANATH UPADHYA AND ADVAIT GOSAI
 """
 
 import torch
@@ -8,7 +8,7 @@ from Globals import *
 import Networks
 
 
-class PreyNetwork(Networks.CreatureFullyConnected):
+class PreyNetwork(Networks.GRUNetwork):
     def __init__(self, hyperparameters, self_id):
         super().__init__(hyperparameters)
         self.loss_mode = hyperparameters.get("loss_mode", SUBTRACT_MODE)
