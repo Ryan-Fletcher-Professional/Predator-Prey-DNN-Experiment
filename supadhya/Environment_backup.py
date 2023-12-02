@@ -291,19 +291,12 @@ class Environment:
             return ALL_PREY_EATEN
         
         #Do the exact same thing as above, but for predators
-
-        for a, b in all_creature_pairs:
-            if a.alive and b.alive and\
-               (((a.model.type == PREY) and (b.model.type == PREDATOR)) or ((b.model.type == PREY) and (a.model.type == PREDATOR))) and\
-               (np.linalg.norm(a.position - b.position) < ((1 - self.EAT_EPSILON) * (a.size + b.size))):
-                a.alive = (a.model.type == PREY)
-                b.alive = (b.model.type == PREY)
-
         all_predators_dead = True
         for creature in filter(FILTER_IN_PREDATOR_OBJECTS, self.creatures):
             if creature.alive:
-                all_predators_dead = False
+                all_predators_dead = True
                 break
+
         if all_predators_dead:
             print(ALL_PREDATORS_DEAD)
             return ALL_PREDATORS_DEAD
