@@ -52,9 +52,10 @@ class Creature:
         """
         self.id = creature_id if creature_id is not None else main.get_id()
         self.DTYPE = params["DTYPE"]
-        attrs = params["attrs"]
+        attrs = model.attrs
         self.fov = attrs["fov"]
         self.sight_range = attrs["sight_range"]
+        print(self.sight_range)
         self.mass = attrs["mass"]
         self.size = attrs["size"]
         self.max_forward_force = attrs["max_forward_force"]
@@ -249,6 +250,7 @@ class Environment:
         self.steps = 0
         self.time = 0.0
         for model in models:
+            #print("FROM ENV 253: " + str(model[0]["attrs"]["sight_range"]))
             self.creatures.append(Creature(model[0], model[1], creature_id=model[1].NN.id))
         for creature in self.creatures:
             creature.model.creature = creature

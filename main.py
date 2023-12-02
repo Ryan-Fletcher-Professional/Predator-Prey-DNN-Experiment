@@ -54,6 +54,7 @@ class Model:
         self.environment = None  # Instantiate dynamically
         self.epoch_losses = []
         self.current_losses = []
+        self.attrs = attrs
     
     def get_inputs(self, queue=None, index=None):
         state_info = self.environment.get_state_info()
@@ -101,9 +102,6 @@ def main():
     for i in range(100):
         #############################################################################################################
         experiment = copy.deepcopy(previous_experiment)
-        # For these two lines the copied index can be changed, but that's it.
-        experiment[PREY_PARAMS_NAME]["attrs"] = copy.deepcopy(previous_experiment[PREY_PARAMS_NAME]["attrs"])
-        experiment[PREDATOR_PARAMS_NAME]["attrs"] = copy.deepcopy(previous_experiment[PREDATOR_PARAMS_NAME]["attrs"])
         #############################################################################################################
         
         # COMMENT THE FOLLOWING LINE WHEN NOT TESTING
@@ -114,6 +112,7 @@ def main():
         # We're also starting with a smaller screen size so loss values are bigger early on to encourage learning control.
         experiment[PREY_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.09, i))  # Should hit 100 at the 55th experiment
         experiment[PREDATOR_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.09, i))  # Should hit 100 at the 55th experiment
+        experiment[PREDATOR_ATTRS_NAME]["sight_range"] = 2 * experiment[PREY_ATTRS_NAME]["sight_range"]
         experiment[ENV_PARAMS_NAME]["screen_width"] = min(DEFAULT_SCREEN_WIDTH, 300 * ((i / 4.0) + 1))
         experiment[ENV_PARAMS_NAME]["screen_height"] = min(DEFAULT_SCREEN_HEIGHT, 300 * ((i / 4.0) + 1))
         experiment[PREY_HYPERPARAMS_NAME]["dimensions"][0] = INTERNAL_CHARACTERISTICS_PER_CREATURE +\
@@ -123,16 +122,16 @@ def main():
                                                                  ((experiment[ENV_PARAMS_NAME]["num_preys"]) * EXTERNAL_CHARACTERISTICS_PER_CREATURE)
                                                                  # "self" plus enemies
         experiment[MAX_SIM_SECONDS] = int((max_max_sim_time * 1.04) / (1 + math.exp(-(i - 50) / 15)))  # CHECK WHEN CHANGING DEFAULT MAX SIM TIME
-        
         #############################################################################################################
         experiments.append(experiment)
         previous_experiment = experiment
         #############################################################################################################
-        
+    
     experiment_results = []
     for i in range(len(experiments)):
         print(f"Starting experiment {i + 1}")
         experiment = experiments[i]
+        print(experiment[PREDATOR_ATTRS_NAME])
         
         if DRAW:
             pygame.init()
@@ -144,8 +143,9 @@ def main():
         # Currently specified relative to the manually-set default x and y in <>__PARAMS in Globals
         num_preys = experiment[ENV_PARAMS_NAME]["num_preys"]
         num_predators = experiment[ENV_PARAMS_NAME]["num_predators"]
-        models = [(copy.deepcopy(experiment[PREY_PARAMS_NAME]), Model(PREY, experiment[PREY_ATTRS_NAME], experiment[PREY_HYPERPARAMS_NAME], network=None if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREY][j % len(experiment_results[i - 1][PREY])]["NETWORK"])) for j in range(num_preys)] +\
-                 [(copy.deepcopy(experiment[PREDATOR_PARAMS_NAME]), Model(PREDATOR, experiment[PREDATOR_ATTRS_NAME], experiment[PREDATOR_HYPERPARAMS_NAME], network=None if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREDATOR][j % len(experiment_results[i - 1][PREDATOR])]["NETWORK"])) for j in range(num_predators)]
+        models = [(copy.deepcopy(experiment[PREY_PARAMS_NAME]), Model(PREY, copy.deepcopy(experiment[PREY_ATTRS_NAME]), experiment[PREY_HYPERPARAMS_NAME], network=None if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREY][j % len(experiment_results[i - 1][PREY])]["NETWORK"])) for j in range(num_preys)] +\
+                 [(copy.deepcopy(experiment[PREDATOR_PARAMS_NAME]), Model(PREDATOR, copy.deepcopy(experiment[PREDATOR_ATTRS_NAME]), experiment[PREDATOR_HYPERPARAMS_NAME], network=None if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREDATOR][j % len(experiment_results[i - 1][PREDATOR])]["NETWORK"])) for j in range(num_predators)]
+        #print("ATTRS from model\n\n" + str(models[3][1].sight_range) + "\n\n")
         
         env = Environment.Environment(experiment[ENV_PARAMS_NAME], models)
         
