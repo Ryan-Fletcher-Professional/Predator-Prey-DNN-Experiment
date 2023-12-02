@@ -363,6 +363,9 @@ class Environment:
                 creature.apply_force(np.array(inputs[0], dtype=self.DTYPE), delta_time)
                 creature.update_velocity(delta_time)
                 creature.update_position(self, delta_time)
+                
+                if (creature.energy < 0.0) and (creature.model.type == PREDATOR):
+                    creature.alive = False
             if DRAW:
                 creature.draw(screen)
         
