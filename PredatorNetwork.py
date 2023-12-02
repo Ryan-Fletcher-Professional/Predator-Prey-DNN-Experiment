@@ -1,5 +1,5 @@
 """
-THIS FILE WRITTEN BY RYAN FLETCHER AND SANATH UPADHYA
+THIS FILE WRITTEN BY RYAN FLETCHER, ADVAIT GOSAI AND SANATH UPADHYA
 """
 
 import torch
@@ -8,7 +8,7 @@ from Globals import *
 import Networks
 
 
-class PredatorNetwork(Networks.CreatureFullyConnected):
+class PredatorNetwork(Networks.DeepMLPWithDropout):
     def __init__(self, hyperparameters, self_id):
         super().__init__(hyperparameters)
         self.id = self_id
