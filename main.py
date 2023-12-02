@@ -134,7 +134,7 @@ def main():
         
         if DRAW:
             pygame.init()
-            screen = pygame.display.set_mode((experiment[ENV_PARAMS_NAME["screen_width"]], experiment[ENV_PARAMS_NAME["screen_height"]]))
+            screen = pygame.display.set_mode((experiment[ENV_PARAMS_NAME]["screen_width"], experiment[ENV_PARAMS_NAME]["screen_height"]))
             clock = pygame.time.Clock()
         
         running = True

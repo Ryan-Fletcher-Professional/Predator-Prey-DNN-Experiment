@@ -3,7 +3,7 @@ import numpy as np
 import pyautogui as ag
 
 
-DRAW = False
+DRAW = True
 # Currently multiprocessing is ~40x slower than serial network feeding :( Maybe it will be usefull for large quantities of creatures?
 USE_MULTIPROCESSING = (not DRAW) and False  # DO NOT REMOVE "(not DRAW) and"; multiprocessing interferes with pygame's loop
 __width, __height = ag.size()
