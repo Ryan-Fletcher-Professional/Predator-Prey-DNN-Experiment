@@ -3,7 +3,7 @@ import numpy as np
 import pyautogui as ag
 
 
-DRAW = False
+DRAW = True
 # Currently multiprocessing is ~40x slower than serial network feeding :( Maybe it will be usefull for large quantities of creatures?
 USE_MULTIPROCESSING = (not DRAW) and False  # DO NOT REMOVE "(not DRAW) and"; multiprocessing interferes with pygame's loop
 __width, __height = ag.size()
@@ -51,7 +51,7 @@ SUBTRACT_MODE = "subtract"
 USE_GPU = False
 REFERENCE_ANGLE = [1.0, 0.0]
 STUN_TICK_TIME = (85 * 60) / MAX_TPS  # ms : currently ~5 ticks
-STUN_IGNORE_PUNISHMENT_QUOTIENT = 0.5  # multiplier for adding stun time when creature tries to move while already stunned
+STUN_IGNORE_PUNISHMENT_QUOTIENT = 0.0  # multiplier for adding stun time when creature tries to move while already stunned
 NETWORK_OUTPUT_DEFAULT = ([0.0, 0.0, 0.0], math.inf)  # Mainly for dead creatures
 DRAG_COEFFICIENT = .015
 DRAG_MINIMUM_SPEED = 30 * .0025 / MAX_TPS
@@ -83,7 +83,7 @@ PREY_ATTRS_NAME = "PREY_ATTRS"
 DEFAULT_PREY_ATTRS = {
     "fov"                       : 5 / 6,
     "num_rays"                  : 23,
-    "sight_range"               : 75,
+    "sight_range"               : 143,
     "mass"                      : 2.5,
     "size"                      : DEFAULT_CREATURE_SIZE,
     "max_forward_force"         : 3 / 1000,
@@ -108,7 +108,7 @@ PREDATOR_ATTRS_NAME = "PRED_ATTRS"
 DEFAULT_PREDATOR_ATTRS = {
     "fov"                       : 5 / 12,
     "num_rays"                  : 13,
-    "sight_range"               : 100,
+    "sight_range"               : 143,
     "mass"                      : 5,
     "size"                      : DEFAULT_CREATURE_SIZE,
     "max_forward_force"         : 3.5 / 1000,

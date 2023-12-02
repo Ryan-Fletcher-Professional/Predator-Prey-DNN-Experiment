@@ -141,7 +141,7 @@ class Creature:
             if self.stun > 0.0:
                 self.rotation_speed = 0.0
                 f = np.array([0.0, 0.0])
-            if (energy_expenditure == 0.0) or ((self.stun > 0.0) and not stunned_this_tick):
+            if(energy_expenditure == 0.0) or ((self.stun > 0.0) and not stunned_this_tick):
                 self.stun = max(0, self.stun - delta_time)
                 self.energy = min(self.initial_energy, self.energy + (np.linalg.norm(np.array([max(self.max_forward_force, self.max_backward_force),
                                                                                             self.max_sideways_force]))

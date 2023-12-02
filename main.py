@@ -97,6 +97,7 @@ class Model:
 def main():
     experiments = []
     previous_experiment = DEFAULT_EXPERIMENT
+    max_max_sim_time = previous_experiment[MAX_SIM_SECONDS]
     for i in range(100):
         #############################################################################################################
         experiment = copy.deepcopy(previous_experiment)
@@ -121,6 +122,7 @@ def main():
         experiment[PREDATOR_HYPERPARAMS_NAME]["dimensions"][0] = INTERNAL_CHARACTERISTICS_PER_CREATURE +\
                                                                  ((experiment[ENV_PARAMS_NAME]["num_preys"]) * EXTERNAL_CHARACTERISTICS_PER_CREATURE)
                                                                  # "self" plus enemies
+        experiment[MAX_SIM_SECONDS] = int((max_max_sim_time * 1.04) / (1 + math.exp(-(i - 50) / 15)))  # CHECK WHEN CHANGING DEFAULT MAX SIM TIME
         
         #############################################################################################################
         experiments.append(experiment)
@@ -134,7 +136,7 @@ def main():
         
         if DRAW:
             pygame.init()
-            screen = pygame.display.set_mode((experiment[ENV_PARAMS_NAME["screen_width"]], experiment[ENV_PARAMS_NAME["screen_height"]]))
+            screen = pygame.display.set_mode((experiment[ENV_PARAMS_NAME]["screen_width"], experiment[ENV_PARAMS_NAME]["screen_height"]))
             clock = pygame.time.Clock()
         
         running = True
@@ -177,6 +179,7 @@ def main():
                     for event in pygame.event.get():
                         if event.type == pygame.QUIT:
                             running = False
+                            end_reason = "TERMINATED"
                     screen.fill(BACKGROUND_COLOR)
                     delta_time = min(1.0 / env.MIN_TPS * 1000, clock.tick(MAX_TPS))
                     # print(delta_time * MAX_TPS / 1000)  # ~=1 if on target TPS
