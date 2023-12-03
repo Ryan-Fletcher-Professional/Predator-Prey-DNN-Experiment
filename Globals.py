@@ -12,13 +12,13 @@ DEFAULT_STORE_CREATURE_POSITIONS_REFERENCE = RECENT
 # Currently multiprocessing is ~40x slower than serial network feeding :( Maybe it will be usefull for large quantities of creatures?
 USE_MULTIPROCESSING = (not DRAW) and False  # DO NOT REMOVE "(not DRAW) and"; multiprocessing interferes with pygame's loop
 __width, __height = ag.size()
-__scale_to_window_size = DRAW
+__scale_to_window_size = False
 __draw_size_coefficient = 0.8
 __noscale_size_coefficient = 10
 DEFAULT_CREATURE_SIZE = 10
 PLACEMENT_BUFFER = 2
 DEFAULT_NUM_TOTAL_CREATURES = 6
-__override_noscale_size = (True, 1800, 1800)
+__override_noscale_size = (True, 600, 600)
 
 if __scale_to_window_size:
     DEFAULT_SCREEN_WIDTH = __width * __draw_size_coefficient
@@ -30,13 +30,13 @@ else:
     DEFAULT_SCREEN_WIDTH = __override_noscale_size[1]
     DEFAULT_SCREEN_HEIGHT = __override_noscale_size[2]
 DTYPE = np.float64
-PRINT_PROGRESS_STEPS = 9000000
+PRINT_PROGRESS_STEPS = 10
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False
 FOCUS_CREATURE = 0  # Index in environment.creatures
 PREY = -1.0
 UNKNOWN_TYPE = 0.0
 PREDATOR = 1.0
-MAX_TPS = 60  # Maximum physics ticks per SIMULATED second.
+MAX_TPS = 30  # Maximum physics ticks per SIMULATED second.
               # Increasing this number will not increase simulation speed. Increase creature speed to do that.
               # (Make sure to inrease MAX_TPS if needed for numerical stability.)
 ALL_PREYS_DEAD = "ALL PREYS_DEAD"
@@ -112,7 +112,7 @@ DEFAULT_PREY_PARAMS = {
 }
 PREDATOR_ATTRS_NAME = "PRED_ATTRS"
 DEFAULT_PREDATOR_ATTRS = {
-    "fov"                       : 5 / 12,
+    "fov"                       : 4 / 12,
     "num_rays"                  : 13,
     "sight_range"               : 143,
     "mass"                      : 5,
@@ -155,8 +155,8 @@ DEFAULT_ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
     "DTYPE"             : DTYPE,
     "screen_width"      : DEFAULT_SCREEN_WIDTH,
     "screen_height"     : DEFAULT_SCREEN_HEIGHT,
-    "num_preys"         : 3,
-    "num_predators"     : 3
+    "num_preys"         : 10,
+    "num_predators"     : 5
 }
 
 DEFAULT_SELF_INPUTS = ["stun", "energy"]
@@ -166,16 +166,16 @@ PREY_HYPERPARAMS_NAME = "PREY_HYPERPARAMS"
 DEFAULT_PREY_NETWORK_HYPERPARAMETERS = {
     "input_keys"    : (DEFAULT_SELF_INPUTS, DEFAULT_OTHER_INPUTS),
     "dimensions"    : [len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_predators"]), 32, 16, 8, DEFAULT_OUTPUT_DIM],
-    "print_state"   : True,
-    "print_loss"    : True,
+    "print_state"   : False,
+    "print_loss"    : False,
     "loss_mode"     : SUBTRACT_MODE
 }
 PREDATOR_HYPERPARAMS_NAME = "PRED_HYPERPARAMS"
 DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS = {
     "input_keys"    : (DEFAULT_SELF_INPUTS, DEFAULT_OTHER_INPUTS),
     "dimensions"    : [len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_preys"]), 32, 16, 8, DEFAULT_OUTPUT_DIM],
-    "print_state"   : True,
-    "print_loss"    : True,
+    "print_state"   : False,
+    "print_loss"    : False,
 }
 
 NUM_TOTAL_CREATURES = DEFAULT_ENVIRONMENT_PARAMETERS["num_preys"] + DEFAULT_ENVIRONMENT_PARAMETERS["num_predators"]

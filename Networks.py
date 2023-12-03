@@ -102,28 +102,6 @@ class CreatureFullyConnectedShallow(CreatureNetwork):
             torch.nn.Linear(dims[1], dims[2])
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
-        
-class DeepFullyConnected(CreatureNetwork):
-    def __init__(self, hyperparameters):
-        super().__init__(hyperparameters)
-        dims = hyperparameters["dimensions"]
-        self.name = "Deep Fully Connected with dimensions " + str(dims)
-        self.model = torch.nn.Sequential(
-            torch.nn.Linear(dims[0], dims[1]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[1], dims[2]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[2], dims[3]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[3], dims[4]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[4], dims[5]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[5], dims[6]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[6], dims[7])
-        )
-        self.optimizer = torch.optim.Adam(self.model.parameters())
 
 class DeepMLPWithDropout(CreatureNetwork):
     def __init__(self, hyperparameters):
@@ -149,78 +127,33 @@ class DeepMLPWithDropout(CreatureNetwork):
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
 
-class EnhancedDeepFullyConnected(CreatureNetwork):
-    def __init__(self, hyperparameters):
-        super().__init__(hyperparameters)
-        dims = hyperparameters["dimensions"]
-        self.name = "Deep FCN Enhanced with dimensions " + str(dims) 
-        
-        self.model = torch.nn.Sequential(
-            torch.nn.Linear(dims[0], dims[1]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[1], dims[2]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[2], dims[3]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[3], dims[4]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[4], dims[5]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[5], dims[6]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[6], dims[7])
-        )
-        self.optimizer = torch.optim.Adam(self.model.parameters())
-
-class DeepMLPWithLayerNorm(CreatureNetwork):
-    def __init__(self, hyperparameters):
-        super().__init__(hyperparameters)
-        dims = hyperparameters["dimensions"]
-        self.name = "Deep FCN LayerNorm with dimensions " + str(dims) 
-        self.model = torch.nn.Sequential(
-            torch.nn.Linear(dims[0], dims[1]),
-            torch.nn.LayerNorm(dims[1]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[1], dims[2]),
-            torch.nn.LayerNorm(dims[2]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[2], dims[3]),
-            torch.nn.LayerNorm(dims[3]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[3], dims[4]),
-            torch.nn.LayerNorm(dims[4]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[4], dims[5]),
-            torch.nn.LayerNorm(dims[5]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[5], dims[6]),
-            torch.nn.LayerNorm(dims[6]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[6], dims[7])
-        )
-        self.optimizer = torch.optim.Adam(self.model.parameters())
-
-class AdvancedMLPMultipleActivations(CreatureNetwork):
-    def __init__(self, hyperparameters):
-        super().__init__(hyperparameters)
-        dims = hyperparameters["dimensions"]
-        self.name = "Deep FCN Activations with dimensions " + str(dims) 
-        self.model = torch.nn.Sequential(
-            torch.nn.Linear(dims[0], dims[1]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[1], dims[2]),
-            torch.nn.Tanh(),
-            torch.nn.Linear(dims[2], dims[3]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[3], dims[4]),
-            torch.nn.Sigmoid(),
-            torch.nn.Linear(dims[4], dims[5]),
-            torch.nn.Tanh(),
-            torch.nn.Linear(dims[5], dims[6]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[6], dims[7])
-        )
-        self.optimizer = torch.optim.Adam(self.model.parameters())
+# class DeepMLPWithLayerNorm(CreatureNetwork):
+#     def __init__(self, hyperparameters):
+#         super().__init__(hyperparameters)
+#         dims = hyperparameters["dimensions"]
+#         self.name = "Deep FCN LayerNorm with dimensions " + str(dims) 
+#         self.model = torch.nn.Sequential(
+#             torch.nn.Linear(dims[0], dims[1]),
+#             torch.nn.LayerNorm(dims[1]),
+#             torch.nn.LeakyReLU(0.01),
+#             torch.nn.Linear(dims[1], dims[2]),
+#             torch.nn.LayerNorm(dims[2]),
+#             torch.nn.LeakyReLU(0.01),
+#             torch.nn.Linear(dims[2], dims[3]),
+#             torch.nn.LayerNorm(dims[3]),
+#             torch.nn.LeakyReLU(0.01),
+#             torch.nn.Linear(dims[3], dims[4]),
+#             torch.nn.LayerNorm(dims[4]),
+#             torch.nn.LeakyReLU(0.01),
+#             torch.nn.Linear(dims[4], dims[5]),
+#             torch.nn.LayerNorm(dims[5]),
+#             torch.nn.LeakyReLU(0.01),
+#             torch.nn.Linear(dims[5], dims[6]),
+#             torch.nn.LayerNorm(dims[6]),
+#             torch.nn.LeakyReLU(0.01),
+#             torch.nn.Linear(dims[6], dims[7])
+#         )
+#         self.optimizer = torch.optim.Adam(self.model.parameters())
 
 class VeryDeepFullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
