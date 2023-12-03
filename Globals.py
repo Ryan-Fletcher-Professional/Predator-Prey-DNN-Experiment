@@ -164,7 +164,7 @@ DEFAULT_OTHER_INPUTS = ["relative_speed_x", "relative_speed_y", "perceived_type"
 PREY_HYPERPARAMS_NAME = "PREY_HYPERPARAMS"
 DEFAULT_PREY_NETWORK_HYPERPARAMETERS = {
     "input_keys"    : (DEFAULT_SELF_INPUTS, DEFAULT_OTHER_INPUTS),
-    "dimensions"    : [len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_predators"]), 10, 10, 10, 4],
+    "dimensions"    : [len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_predators"]), 32, 16, 8, 4],
     "print_state"   : True,
     "print_loss"    : True,
     "loss_mode"     : SUBTRACT_MODE
@@ -172,7 +172,7 @@ DEFAULT_PREY_NETWORK_HYPERPARAMETERS = {
 PREDATOR_HYPERPARAMS_NAME = "PRED_HYPERPARAMS"
 DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS = {
     "input_keys"    : (DEFAULT_SELF_INPUTS, DEFAULT_OTHER_INPUTS),
-    "dimensions"    : [len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_preys"]), 10, 10, 10, 4],
+    "dimensions"    : [len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_preys"]), 32, 16, 8, 4],
     "print_state"   : True,
     "print_loss"    : True,
 }
