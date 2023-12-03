@@ -117,12 +117,6 @@ def main():
         experiment[PREDATOR_ATTRS_NAME]["sight_range"] = 2 * experiment[PREY_ATTRS_NAME]["sight_range"]
         experiment[ENV_PARAMS_NAME]["screen_width"] = min(DEFAULT_SCREEN_WIDTH, 300 * ((i / 4.0) + 1))
         experiment[ENV_PARAMS_NAME]["screen_height"] = min(DEFAULT_SCREEN_HEIGHT, 300 * ((i / 4.0) + 1))
-        experiment[PREY_HYPERPARAMS_NAME]["dimensions"][0] = INTERNAL_CHARACTERISTICS_PER_CREATURE +\
-                                                             ((experiment[ENV_PARAMS_NAME]["num_predators"]) * EXTERNAL_CHARACTERISTICS_PER_CREATURE)
-                                                             # "self" plus enemies
-        experiment[PREDATOR_HYPERPARAMS_NAME]["dimensions"][0] = INTERNAL_CHARACTERISTICS_PER_CREATURE +\
-                                                                 ((experiment[ENV_PARAMS_NAME]["num_preys"]) * EXTERNAL_CHARACTERISTICS_PER_CREATURE)
-                                                                 # "self" plus enemies
         experiment[MAX_SIM_SECONDS] = int((max_max_sim_time * 1.04) / (1 + math.exp(-(i - 50) / 15)))  # CHECK WHEN CHANGING DEFAULT MAX SIM TIME
         #############################################################################################################
         experiments.append(experiment)
@@ -133,7 +127,7 @@ def main():
     for i in range(len(experiments)):
         print(f"Starting experiment {i + 1}")
         experiment = experiments[i]
-        print(experiment[PREDATOR_ATTRS_NAME])
+        print("Experiment details:\n\t" + str(experiment[PREDATOR_ATTRS_NAME]))
         
         if DRAW:
             pygame.init()

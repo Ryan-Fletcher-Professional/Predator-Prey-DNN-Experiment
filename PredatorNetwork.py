@@ -20,15 +20,20 @@ class PredatorNetwork(Networks.DeepMLPWithDropout):
             if creature_state["id"] == self.id:
                 this = creature_state
                 break
-        flattened = [this["stun"], this["energy"], this["relative_speed"]]
+        flattened = [this[key] for key in self.self_inputs]  #[this["stun"], this["energy"], this["relative_speed"]]
         for prey_state in filter(FILTER_IN_PREY_DICTS, state_info["creature_states"]):
-            flattened += [prey_state["relative_speed"], prey_state["perceived_type"], prey_state["distance"]]
+            flattened += [prey_state[key] for key in self.other_inputs]  #[prey_state["relative_speed"], prey_state["perceived_type"], prey_state["distance"]]
         return torch.FloatTensor(flattened)
     
     def loss(self, state_info):
         creature_states = filter(FILTER_IN_PERCEIVED_PREY_DICTS, state_info["creature_states"])
+        if self.print_state:
+            print(f"\nState info for {self.id}:\n\t{state_info['creature_states']}")
         closest = {"distance" : self.max_distance}  # Instantiated dynamically according to creature's sight range
         for creature in creature_states:
             if creature["distance"] < closest["distance"]:
                 closest = creature
-        return torch.tensor(closest["distance"], requires_grad=True)
+        r = torch.tensor(closest["distance"], requires_grad=True)
+        if self.print_loss:
+            print(f"\nLoss for {self.id}:\n\t{r}")
+        return r

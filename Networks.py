@@ -17,6 +17,11 @@ class CreatureNetwork:
     def __init__(self, hyperparameters):
         self.model = None
         self.optimizer = None
+        self.hyperparameters = hyperparameters
+        self.self_inputs = hyperparameters["input_keys"][0]
+        self.other_inputs = hyperparameters["input_keys"][1]
+        self.print_state = hyperparameters["print_state"]
+        self.print_loss = hyperparameters["print_loss"]
 
     def get_inputs(self, state_info):
         """
@@ -25,7 +30,7 @@ class CreatureNetwork:
         """
         # Transform into a 1d array with environment info first then info about all other relevent creatures.
         input = self.transform(state_info)
-        scores, loss = self.train_part34(self.model, self.optimizer, state_info, input)
+        scores, loss = self.train(self.model, self.optimizer, state_info, input)
         # This goes elsewhere?
         # self.model.eval()
         # scores = None
@@ -33,7 +38,7 @@ class CreatureNetwork:
         #     scores = self.model(input)            
         return [[scores[0].item(), scores[1].item()], scores[2].item()], loss
     
-    def train_part34(self, model, optimizer, state_info, input):
+    def train(self, model, optimizer, state_info, input):
         """
         Train a model on CIFAR-10 using the PyTorch Module API.
         

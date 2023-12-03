@@ -18,8 +18,6 @@ DEFAULT_CREATURE_SIZE = 10
 PLACEMENT_BUFFER = 2
 DEFAULT_NUM_TOTAL_CREATURES = 6
 __override_noscale_size = (True, 1800, 1800)
-EXTERNAL_CHARACTERISTICS_PER_CREATURE = 3
-INTERNAL_CHARACTERISTICS_PER_CREATURE = 3
 
 if __scale_to_window_size:
     DEFAULT_SCREEN_WIDTH = __width * __draw_size_coefficient
@@ -78,10 +76,12 @@ FOCUS_PATH_LENGTH = 1000
 #     "rotation_energy_quotient"  : positive number (can functionally be negative, but will violate thermodynamics)
 # }
 # <>_PARAMS = {
-#     "x"                 : positive number            : starting position
-#     "y"                 : positive number            : starting position
-#     "initial_direction" : positive number in [0,2pi) : starting rotation
-#     "attrs"             : <>_ATTRS
+#     "x"                 : positive number                         : starting position
+#     "y"                 : positive number                         : starting position
+#     "initial_direction" : positive number in [0,2pi)              : starting rotation
+#     "initial_energy"    : positive number                         : starting energy level
+#     :store_positions"   : (non-negative number, <FIRST/RECENT>)   : [0]: determines number of stored positions for serialization (math.inf accepted), [1]: determines if first [0] positions or last [0] positions are stored
+#     "DTYPE"             : numpy dtype                             : used for all numpy in Creature class
 # }
 PREY_ATTRS_NAME = "PREY_ATTRS"
 DEFAULT_PREY_ATTRS = {
@@ -134,21 +134,15 @@ DEFAULT_PREDATOR_PARAMS = {
     "DTYPE"             : DTYPE
 }
 
-PREY_HYPERPARAMS_NAME = "PREY_HYPERPARAMS"
-DEFAULT_PREY_NETWORK_HYPERPARAMETERS = {
-    "dimensions"    : [-1, 10, 10, 10, 4],
-    "loss_mode"     : SUBTRACT_MODE
-}
-PREDATOR_HYPERPARAMS_NAME = "PRED_HYPERPARAMS"
-DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS = {
-    "dimensions" : [-1, 10, 10, 10, 4]
-}
-
 # ENVIRONMENT_PARAMETERS = {
 #     "DRAG_COEFFICIENT"  : positive number
 #     "MIN_TPS"           : number          : for stability
 #     "EAT_EPSILON"       : number in [0,1] : proportion of overlap between creatures required for predation to occur
 #     "DTYPE"             : np DTYPE        : for consistency; used in all numpy stuff
+#     "screen_width"      : positive int
+#     "screen_height"     : positive int
+#     "num_preys"         : non-negative int
+#     "num_predators"     : non-negative int
 # }
 ENV_PARAMS_NAME = "ENV_PARAMS"
 DEFAULT_ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
@@ -160,6 +154,24 @@ DEFAULT_ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
     "screen_height"     : DEFAULT_SCREEN_HEIGHT,
     "num_preys"         : 3,
     "num_predators"     : 3
+}
+
+DEFAULT_SELF_INPUTS = ["stun", "energy", "relative_speed"]
+DEFAULT_OTHER_INPUTS = ["relative_speed", "perceived_type", "distance"]
+PREY_HYPERPARAMS_NAME = "PREY_HYPERPARAMS"
+DEFAULT_PREY_NETWORK_HYPERPARAMETERS = {
+    "input_keys"    : (DEFAULT_SELF_INPUTS, DEFAULT_OTHER_INPUTS),
+    "dimensions"    : [len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_predators"]), 10, 10, 10, 4],
+    "print_state"   : True,
+    "print_loss"    : True,
+    "loss_mode"     : SUBTRACT_MODE
+}
+PREDATOR_HYPERPARAMS_NAME = "PRED_HYPERPARAMS"
+DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS = {
+    "input_keys"    : (DEFAULT_SELF_INPUTS, DEFAULT_OTHER_INPUTS),
+    "dimensions"    : [len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_preys"]), 10, 10, 10, 4],
+    "print_state"   : True,
+    "print_loss"    : True,
 }
 
 NUM_TOTAL_CREATURES = DEFAULT_ENVIRONMENT_PARAMETERS["num_preys"] + DEFAULT_ENVIRONMENT_PARAMETERS["num_predators"]

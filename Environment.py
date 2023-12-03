@@ -184,9 +184,9 @@ class Creature:
             self.position[1] = -(env.screen_height - self.position[1])
         self.motion_total += np.linalg.norm(self.position - old_position)
         if self.max_store_positions > 0:
-            if not (self.store_positions_reference.Equals(FIRST) and (len(self.positions) >= self.max_store_positions)):
+            if not ((self.store_positions_reference == FIRST) and (len(self.positions) >= self.max_store_positions)):
                 self.positions.append(self.position)
-        if self.store_positions_reference.Equals(RECENT) and (len(self.positions) > self.max_store_positions):
+        if (self.store_positions_reference == RECENT) and (len(self.positions) > self.max_store_positions):
             self.positions.pop(0)
     
     def draw(self, screen):
