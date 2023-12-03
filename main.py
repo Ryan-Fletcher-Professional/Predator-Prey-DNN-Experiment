@@ -201,9 +201,13 @@ def main():
                 # End testing                                                                    #
                 ##################################################################################
                 
-                if step_result == ALL_PREY_EATEN:
+                if step_result == ALL_PREYS_DEAD:
                     running = False
-                    end_reason = ALL_PREY_EATEN
+                    end_reason = ALL_PREYS_DEAD
+
+                if step_result == ALL_PREDATORS_DEAD:
+                    running = False
+                    end_reason = ALL_PREDATORS_DEAD
 
                 if DRAW:
                     pygame.display.flip()

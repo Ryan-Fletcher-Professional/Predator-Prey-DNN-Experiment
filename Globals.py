@@ -3,7 +3,8 @@ import numpy as np
 import pyautogui as ag
 
 
-DRAW = False
+DRAW = True
+ALLOW_PREDATOR_ENERGY_DEATH = True
 DEFAULT_STORE_CREATURE_POSITIONS = math.inf
 FIRST = "FIRST"
 RECENT = "RECENT"
@@ -38,7 +39,8 @@ PREDATOR = 1.0
 MAX_TPS = 60  # Maximum physics ticks per SIMULATED second.
               # Increasing this number will not increase simulation speed. Increase creature speed to do that.
               # (Make sure to inrease MAX_TPS if needed for numerical stability.)
-ALL_PREY_EATEN = "ALL PREY_EATEN"
+ALL_PREYS_DEAD = "ALL PREYS_DEAD"
+ALL_PREDATORS_DEAD = "ALL PREDATORS_DEAD"
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
@@ -134,6 +136,7 @@ DEFAULT_PREDATOR_PARAMS = {
     "DTYPE"             : DTYPE
 }
 
+PREDATION_ENERGY_BOOST = DEFAULT_PREY_PARAMS["initial_energy"] * 0.1
 # ENVIRONMENT_PARAMETERS = {
 #     "DRAG_COEFFICIENT"  : positive number
 #     "MIN_TPS"           : number          : for stability
