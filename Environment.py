@@ -1,5 +1,6 @@
 """
 THIS FILE WRITTEN BY RYAN FLETCHER
+    ALLOW_PREDATOR_ENERGY_DEATH sections added and written by Sanath Upadhya
 """
 
 import multiprocessing
