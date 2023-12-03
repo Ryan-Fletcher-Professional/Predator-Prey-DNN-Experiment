@@ -121,9 +121,7 @@ class DeepFullyConnected(CreatureNetwork):
             torch.nn.LeakyReLU(0.01),
             torch.nn.Linear(dims[5], dims[6]),
             torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[6], dims[7]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[7], dims[8])
+            torch.nn.Linear(dims[6], dims[7])
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
 
@@ -147,9 +145,7 @@ class DeepMLPWithDropout(CreatureNetwork):
             torch.nn.LeakyReLU(0.01),
             torch.nn.Linear(dims[5], dims[6]),
             torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[6], dims[7]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[7], dims[8])
+            torch.nn.Linear(dims[6], dims[7])
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
 
@@ -172,9 +168,7 @@ class EnhancedDeepFullyConnected(CreatureNetwork):
             torch.nn.LeakyReLU(0.01),
             torch.nn.Linear(dims[5], dims[6]),
             torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[6], dims[7]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[7], dims[8])
+            torch.nn.Linear(dims[6], dims[7])
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
 
@@ -199,7 +193,10 @@ class DeepMLPWithLayerNorm(CreatureNetwork):
             torch.nn.Linear(dims[4], dims[5]),
             torch.nn.LayerNorm(dims[5]),
             torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[5], dims[6])
+            torch.nn.Linear(dims[5], dims[6]),
+            torch.nn.LayerNorm(dims[6]),
+            torch.nn.LeakyReLU(0.01),
+            torch.nn.Linear(dims[6], dims[7])
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
 
