@@ -3,7 +3,7 @@ import numpy as np
 import pyautogui as ag
 
 
-DRAW = True
+DRAW = False
 ALLOW_PREDATOR_ENERGY_DEATH = True
 DEFAULT_STORE_CREATURE_POSITIONS = math.inf
 FIRST = "FIRST"

@@ -73,8 +73,8 @@ class Model:
                         perceived_type = state["type"]
                         distance = sight[1]
                         decay = min(1, max(0, math.exp(-SPEED_ESTIMATION_DECAY * ((distance / (self.creature.sight_range / 2)) - 1))))
-                        relative_speed_x = (state["velocity"][0] - self.creature.velocity[0]) * decay / (self.creature.max_velocity * 2)
-                        relative_speed_y = (state["velocity"][1] - self.creature.velocity[1]) * decay / (self.creature.max_velocity * 2)
+                        relative_speed_x = (state["velocity"][0] - self.creature.velocity[0]) * decay / (self.creature.max_velocity * 2 * delta_time)
+                        relative_speed_y = (state["velocity"][1] - self.creature.velocity[1]) * decay / (self.creature.max_velocity * 2 * delta_time)
             if not hit:
                 # These may need to be implemented differently if the networks don't like implicit multimodality
                 perceived_type = UNKNOWN_TYPE
@@ -92,7 +92,6 @@ class Model:
                 "energy"            : state["energy"] / state["initial_energy"],
                 "stun"              : state["stun"]
             })
-            print(f"\n\nRELATIVE SPEEDS: {[(state['relative_speed_x'], state['relative_speed_y']) for state in relative_creature_states]}")
         relative_state_info["creature_states"] = relative_creature_states
         inputs, loss = self.NN.get_inputs(relative_state_info) if self.creature.alive else NETWORK_OUTPUT_DEFAULT
         self.current_losses.append(loss)
