@@ -55,6 +55,7 @@ class Creature:
         attrs = model.attrs
         self.fov = attrs["fov"]
         self.sight_range = attrs["sight_range"]
+        self.positions = []
         self.mass = attrs["mass"]
         self.size = attrs["size"]
         self.max_forward_force = attrs["max_forward_force"]
@@ -180,6 +181,11 @@ class Creature:
         if env.screen_height - self.position[1] < 0:
             self.position[1] = -(env.screen_height - self.position[1])
         self.motion_total += np.linalg.norm(self.position - old_position)
+        if STORE_CREATURE_POSITIONS > 0:
+            if not (STORE_CREATURE_POSITIONS_REFERENCE.Equals(FIRST) and (len(self.positions) >= STORE_CREATURE_POSITIONS)):
+                self.positions.append(self.position)
+        if STORE_CREATURE_POSITIONS_REFERENCE.Equals(RECENT) and (len(self.positions) > STORE_CREATURE_POSITIONS):
+            self.positions.pop(0)
     
     def draw(self, screen):
         for ray in self.rays:
@@ -220,7 +226,11 @@ class Creature:
         self.model.epoch_losses.append(self.model.current_losses)
         losses = self.model.current_losses
         self.model.current_losses = []
-        return { "NETWORK" : self.model.NN, "LOSSES" : losses }  # Add more analytics
+        results = { "NETWORK" : self.model.NN, "LOSSES" : losses }
+        if STORE_CREATURE_POSITIONS > 0:
+            results["POSITIONS"] = self.positions
+        # Add more analytics
+        return results
     
 
 def worker(task_queue, inputs_queue, creatures):
