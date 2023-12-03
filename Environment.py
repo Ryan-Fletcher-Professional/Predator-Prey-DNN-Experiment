@@ -228,7 +228,7 @@ class Creature:
         self.model.current_losses = []
         results = { "NETWORK" : self.model.NN, "LOSSES" : losses }
         if STORE_CREATURE_POSITIONS > 0:
-            results["positions"] = self.positions
+            results["POSITIONS"] = self.positions
         # Add more analytics
         return results
     
