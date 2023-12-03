@@ -40,6 +40,8 @@ class Model:
             self.NN = PredatorNetwork.PredatorNetwork(hyperparameters, new_id)
         else:
             self.NN = None
+        if self.NN is not None:
+            self.NN.model_object = self
         self.sight_range = attrs["sight_range"]
         self.mass = attrs["mass"]
         self.size = attrs["size"]

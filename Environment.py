@@ -55,7 +55,6 @@ class Creature:
         attrs = model.attrs
         self.fov = attrs["fov"]
         self.sight_range = attrs["sight_range"]
-        print(self.sight_range)
         self.mass = attrs["mass"]
         self.size = attrs["size"]
         self.max_forward_force = attrs["max_forward_force"]
