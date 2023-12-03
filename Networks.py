@@ -82,8 +82,11 @@ class CreatureFullyConnected(CreatureNetwork):
         dims = hyperparameters["dimensions"]
         self.model = torch.nn.Sequential(
             torch.nn.Linear(dims[0], dims[1]),
+            torch.nn.LeakyReLU(0.01),
             torch.nn.Linear(dims[1], dims[2]),
+            torch.nn.LeakyReLU(0.01),
             torch.nn.Linear(dims[2], dims[3]),
+            torch.nn.LeakyReLU(0.01),
             torch.nn.Linear(dims[3], dims[4])
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
@@ -92,10 +95,9 @@ class DeepFullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
         self.name = "Deep Fully Connected"
-        input_dim = hyperparameters["dimensions"][0]
-        dims = [-1, 50, 100, 150, 200, 150, 100, 50, 4]
+        dims = hyperparameters["dimensions"]
         self.model = torch.nn.Sequential(
-            torch.nn.Linear(input_dim, dims[1]),
+            torch.nn.Linear(dims[0], dims[1]),
             torch.nn.ReLU(),
             torch.nn.Linear(dims[1], dims[2]),
             torch.nn.ReLU(),
@@ -117,10 +119,9 @@ class DeepMLPWithDropout(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
         self.name = "Deep FCN Dropout"
-        input_dim = hyperparameters["dimensions"][0]
-        dims = [-1, 60, 120, 180, 240, 180, 120, 60, 4]
+        dims = hyperparameters["dimensions"]
         self.model = torch.nn.Sequential(
-            torch.nn.Linear(input_dim, dims[1]),
+            torch.nn.Linear(dims[0], dims[1]),
             torch.nn.ReLU(),
             torch.nn.Dropout(0.3),
             torch.nn.Linear(dims[1], dims[2]),
@@ -144,10 +145,9 @@ class EnhancedDeepFullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
         self.name = "Deep FCN Enhanced"
-        input_dim = hyperparameters["dimensions"][0]
-        dims = [-1, 64, 128, 256, 512, 256, 128, 64, 4]
+        dims = hyperparameters["dimensions"]
         self.model = torch.nn.Sequential(
-            torch.nn.Linear(input_dim, dims[1]),
+            torch.nn.Linear(dims[0], dims[1]),
             torch.nn.ReLU(),
             torch.nn.Linear(dims[1], dims[2]),
             torch.nn.ReLU(),
@@ -169,10 +169,9 @@ class DeepMLPWithLayerNorm(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
         self.name = "Deep FCN LayerNorm"
-        input_dim = hyperparameters["dimensions"][0]
-        dims = [-1, 80, 160, 320, 160, 80, 4]
+        dims = hyperparameters["dimensions"]
         self.model = torch.nn.Sequential(
-            torch.nn.Linear(input_dim, dims[1]),
+            torch.nn.Linear(dims[0], dims[1]),
             torch.nn.LayerNorm(dims[1]),
             torch.nn.ReLU(),
             torch.nn.Linear(dims[1], dims[2]),
@@ -195,10 +194,9 @@ class AdvancedMLPMultipleActivations(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
         self.name = "Deep FCN Activations"
-        input_dim = hyperparameters["dimensions"][0]
-        dims = [-1, 128, 256, 512, 256, 128, 64, 4]
+        dims = hyperparameters["dimensions"]
         self.model = torch.nn.Sequential(
-            torch.nn.Linear(input_dim, dims[1]),
+            torch.nn.Linear(dims[0], dims[1]),
             torch.nn.ReLU(),
             torch.nn.Linear(dims[1], dims[2]),
             torch.nn.Tanh(),
