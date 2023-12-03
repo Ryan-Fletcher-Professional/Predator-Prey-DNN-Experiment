@@ -3,7 +3,7 @@ import numpy as np
 import pyautogui as ag
 
 
-DRAW = False
+DRAW = True
 ALLOW_PREDATOR_ENERGY_DEATH = True
 DEFAULT_STORE_CREATURE_POSITIONS = math.inf
 FIRST = "FIRST"
@@ -160,7 +160,7 @@ DEFAULT_ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
 }
 
 DEFAULT_SELF_INPUTS = ["stun", "energy"]
-DEFAULT_OTHER_INPUTS = ["relative_speed_x", "relative_speed_y", "perceived_type", "distance"]
+DEFAULT_OTHER_INPUTS = ["relative_speed_x", "relative_speed_y", "perceived_type", "distance", "relative_angle"]
 DEFAULT_OUTPUT_DIM = 4
 PREY_HYPERPARAMS_NAME = "PREY_HYPERPARAMS"
 DEFAULT_PREY_NETWORK_HYPERPARAMETERS = {
@@ -191,7 +191,7 @@ EXPERIMENT_DICTS = [DEFAULT_PREY_ATTRS, DEFAULT_PREY_PARAMS, DEFAULT_PREY_NETWOR
 KEEP_WEIGHTS = "KEEP_WEIGHTS"
 MAX_SIM_SECONDS = "MAX_SIM_SECONDS"
 DEFAULT_EXPERIMENT = { **{ label : dictionary for label, dictionary in zip(EXPERIMENT_LABELS, EXPERIMENT_DICTS) },
-                       **{ KEEP_WEIGHTS : True, MAX_SIM_SECONDS : 1800 } }
+                       **{ KEEP_WEIGHTS : True, MAX_SIM_SECONDS : 600 } }
 
 
 def NORMALIZE(v):

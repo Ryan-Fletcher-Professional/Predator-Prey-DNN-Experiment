@@ -90,7 +90,8 @@ class Model:
                 "relative_speed_y"  : relative_speed_y,
                 "id"                : state["id"],
                 "energy"            : state["energy"] / state["initial_energy"],
-                "stun"              : state["stun"]
+                "stun"              : state["stun"],
+                "relative_angle"    : ANGLE_BETWEEN(self.creature.direction, state["direction"])
             })
         relative_state_info["creature_states"] = relative_creature_states
         inputs, loss = self.NN.get_inputs(relative_state_info) if self.creature.alive else NETWORK_OUTPUT_DEFAULT
