@@ -90,6 +90,18 @@ class CreatureFullyConnected(CreatureNetwork):
             torch.nn.Linear(dims[3], dims[4])
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
+
+class CreatureFullyConnectedShallow(CreatureNetwork):
+    def __init__(self, hyperparameters):
+        super().__init__(hyperparameters)
+        self.name = "Shallow Fully Connected"
+        dims = hyperparameters["dimensions"]
+        self.model = torch.nn.Sequential(
+            torch.nn.Linear(dims[0], dims[1]),
+            torch.nn.LeakyReLU(0.01),
+            torch.nn.Linear(dims[1], dims[2])
+        )
+        self.optimizer = torch.optim.Adam(self.model.parameters())
         
 class DeepFullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
