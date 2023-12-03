@@ -123,7 +123,7 @@ DEFAULT_PREDATOR_ATTRS = {
     "max_rotate_force"          : 11.5 / 1000,
     "max_speed"                 : 30 / 1000,
     "max_rotate_speed"          : 2 * np.pi * (9 / 12) / 1000,
-    "force_energy_quotient"     : 1,
+    "force_energy_quotient"     : 0.8,
     "rotation_energy_quotient"  : .01 / (2 * np.pi)
 }
 PREDATOR_PARAMS_NAME = "PRED_PARAMS"
@@ -159,21 +159,24 @@ DEFAULT_ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
     "num_predators"     : 5
 }
 
+# DIMENSION LISTS HERE
+DIMS_FOR_EXP_1_FC_SHALLOW = []  # TODO
 DEFAULT_SELF_INPUTS = ["stun", "energy"]
 DEFAULT_OTHER_INPUTS = ["relative_speed_x", "relative_speed_y", "perceived_type", "distance", "relative_angle"]
 DEFAULT_OUTPUT_DIM = 4
 PREY_HYPERPARAMS_NAME = "PREY_HYPERPARAMS"
 DEFAULT_PREY_NETWORK_HYPERPARAMETERS = {
     "input_keys"    : (DEFAULT_SELF_INPUTS, DEFAULT_OTHER_INPUTS),
-    "dimensions"    : [len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_predators"]), 32, 16, 8, DEFAULT_OUTPUT_DIM],
+    "dimensions"    : DIMS_FOR_EXP_1_FC_SHALLOW,  #[len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_predators"]), 32, 16, 8, DEFAULT_OUTPUT_DIM],
     "print_state"   : False,
     "print_loss"    : False,
     "loss_mode"     : SUBTRACT_MODE
 }
+
 PREDATOR_HYPERPARAMS_NAME = "PRED_HYPERPARAMS"
 DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS = {
     "input_keys"    : (DEFAULT_SELF_INPUTS, DEFAULT_OTHER_INPUTS),
-    "dimensions"    : [len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_preys"]), 32, 16, 8, DEFAULT_OUTPUT_DIM],
+    "dimensions"    : DIMS_FOR_EXP_1_FC_SHALLOW,  #[len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_preys"]), 32, 16, 8, DEFAULT_OUTPUT_DIM],
     "print_state"   : False,
     "print_loss"    : False,
 }

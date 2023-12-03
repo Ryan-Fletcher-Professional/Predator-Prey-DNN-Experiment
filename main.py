@@ -102,9 +102,20 @@ class Model:
 
 
 def main(serialize=True, name=None):
+    """
+        Instructions for experimentation:
+        Set PreyNetwork.PreyNetwork parent class to the appropriate Network.
+        Set PredatorNetwork.PredatorNetwork parent class to the appropriate Network.
+        Set Globals.PREY_NETWORK_HYPERMARATERS["dimensions"] = <appropriate dimensions list>
+        Set Globals.PREDATOR_NETWORK_HYPERMARATERS["dimensions"] = <appropriate dimensions list>
+        Comment/uncomment the two flags approrpriately at the top of Main.main().
+        Run in the terminal:
+            python3 main.py --name "<a descriptive name for the serialization file>"
+    """
     experiments = []
     previous_experiment = DEFAULT_EXPERIMENT
     max_max_sim_time = previous_experiment[MAX_SIM_SECONDS]
+    #ALLOW_PREDATOR_ENERGY_DEATH = False  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
     for i in range(100):
         #############################################################################################################
         experiment = copy.deepcopy(previous_experiment)
@@ -112,6 +123,8 @@ def main(serialize=True, name=None):
         
         # COMMENT THE FOLLOWING LINE WHEN NOT TESTING
         # experiment[MAX_SIM_SECONDS] = 30
+        
+        #experiment[PREY_HYPERPARAMS_NAME]["loss_mode"] = RECIPROCAL_MODE  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
         
         # Modify experiment parameters
         # In these experiments we're starting the creatures off with low energy so they can learn what it means.
@@ -257,7 +270,7 @@ def main(serialize=True, name=None):
     
     if serialize:
         idn = "_" + str(int(time.time() - 1701300000))
-        filename = (name if name is not None else "") + 'serialized_data' + idn + '.pkl'
+        filename = ((name + "_") if name is not None else "") + 'serialized_data' + idn + '.pkl'
         print("Serialized file name:\n\t" + filename)
         with open(filename, 'wb') as file:
             pickle.dump(experiment_results, file)
