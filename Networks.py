@@ -78,8 +78,8 @@ class CreatureNetwork:
 class CreatureFullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
-        self.name = "Fully Connected"
         dims = hyperparameters["dimensions"]
+        self.name = "Fully Connected with dimensions " + str(dims)        
         self.model = torch.nn.Sequential(
             torch.nn.Linear(dims[0], dims[1]),
             torch.nn.LeakyReLU(0.01),
@@ -106,8 +106,8 @@ class CreatureFullyConnectedShallow(CreatureNetwork):
 class DeepFullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
-        self.name = "Deep Fully Connected"
         dims = hyperparameters["dimensions"]
+        self.name = "Deep Fully Connected with dimensions " + str(dims)
         self.model = torch.nn.Sequential(
             torch.nn.Linear(dims[0], dims[1]),
             torch.nn.ReLU(),
@@ -130,8 +130,8 @@ class DeepFullyConnected(CreatureNetwork):
 class DeepMLPWithDropout(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
-        self.name = "Deep FCN Dropout"
         dims = hyperparameters["dimensions"]
+        self.name = "Deep FCN Dropout with dimensions " + str(dims) 
         self.model = torch.nn.Sequential(
             torch.nn.Linear(dims[0], dims[1]),
             torch.nn.ReLU(),
@@ -156,8 +156,9 @@ class DeepMLPWithDropout(CreatureNetwork):
 class EnhancedDeepFullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
-        self.name = "Deep FCN Enhanced"
         dims = hyperparameters["dimensions"]
+        self.name = "Deep FCN Enhanced with dimensions " + str(dims) 
+        
         self.model = torch.nn.Sequential(
             torch.nn.Linear(dims[0], dims[1]),
             torch.nn.ReLU(),
@@ -180,8 +181,8 @@ class EnhancedDeepFullyConnected(CreatureNetwork):
 class DeepMLPWithLayerNorm(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
-        self.name = "Deep FCN LayerNorm"
         dims = hyperparameters["dimensions"]
+        self.name = "Deep FCN LayerNorm with dimensions " + str(dims) 
         self.model = torch.nn.Sequential(
             torch.nn.Linear(dims[0], dims[1]),
             torch.nn.LayerNorm(dims[1]),
@@ -205,8 +206,8 @@ class DeepMLPWithLayerNorm(CreatureNetwork):
 class AdvancedMLPMultipleActivations(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
-        self.name = "Deep FCN Activations"
         dims = hyperparameters["dimensions"]
+        self.name = "Deep FCN Activations with dimensions " + str(dims) 
         self.model = torch.nn.Sequential(
             torch.nn.Linear(dims[0], dims[1]),
             torch.nn.ReLU(),
