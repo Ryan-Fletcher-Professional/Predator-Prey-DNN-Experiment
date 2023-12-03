@@ -2,7 +2,7 @@
 THIS FILE WRITTEN BY RYAN FLETCHER AND
 """
 
-
+import argparse
 import multiprocessing
 import pickle
 import numpy as np
@@ -100,7 +100,7 @@ class Model:
         queue.put((index, inputs))
 
 
-def main():
+def main(name=None):
     experiments = []
     previous_experiment = DEFAULT_EXPERIMENT
     max_max_sim_time = previous_experiment[MAX_SIM_SECONDS]
@@ -255,7 +255,7 @@ def main():
     print(f"Total simulated time:    {int((total_sim_time / 1000) // 3600)}h {int(((total_sim_time / 1000) % 3600) // 60)}m {((((total_sim_time / 1000) % 3600) % 60)):.3f}s\nTotal real time:         {int(total_real_time // 3600)}h {int((total_real_time % 3600) // 60)}m {(((total_real_time % 3600) % 60)):.3f}s")
     
     idn = "_" + str(int(time.time() - 1701300000))
-    filename = 'serialized_data' + idn + '.pkl'
+    filename = (name if name is not None else "") + 'serialized_data' + idn + '.pkl'
     print("Serialized file name:\n\t" + filename)
     with open(filename, 'wb') as file:
         pickle.dump(experiment_results, file)
@@ -266,4 +266,6 @@ def main():
 
 if __name__ == "__main__":
     print("Setting up...")
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--name", help="Optional argument", default=None)
+    main(name=parser.parse_args().name)
