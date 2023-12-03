@@ -117,7 +117,8 @@ def main():
         # We're also starting with a smaller screen size so loss values are bigger early on to encourage learning control.
         experiment[PREY_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.09, i))  # Should hit 100 at the 55th experiment
         experiment[PREDATOR_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.09, i))  # Should hit 100 at the 55th experiment
-        experiment[PREDATOR_ATTRS_NAME]["sight_range"] = 2 * experiment[PREY_ATTRS_NAME]["sight_range"]
+        experiment[PREY_ATTRS_NAME]["sight_range"] = (min(experiment[ENV_PARAMS_NAME]["screen_width"], experiment[ENV_PARAMS_NAME]["screen_height"]) / 2) - max(experiment[PREY_ATTRS_NAME]["size"], experiment[PREDATOR_ATTRS_NAME]["size"])
+        experiment[PREDATOR_ATTRS_NAME]["sight_range"] = (min(experiment[ENV_PARAMS_NAME]["screen_width"], experiment[ENV_PARAMS_NAME]["screen_height"]) / 2) - max(experiment[PREY_ATTRS_NAME]["size"], experiment[PREDATOR_ATTRS_NAME]["size"])
         experiment[ENV_PARAMS_NAME]["screen_width"] = min(DEFAULT_SCREEN_WIDTH, 300 * ((i / 4.0) + 1))
         experiment[ENV_PARAMS_NAME]["screen_height"] = min(DEFAULT_SCREEN_HEIGHT, 300 * ((i / 4.0) + 1))
         experiment[MAX_SIM_SECONDS] = int((max_max_sim_time * 1.04) / (1 + math.exp(-(i - 50) / 15)))  # CHECK WHEN CHANGING DEFAULT MAX SIM TIME
