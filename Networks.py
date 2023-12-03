@@ -74,6 +74,17 @@ class CreatureNetwork:
         
         return scores, loss.item()
 
+class CreatureFullyConnectedShallow(CreatureNetwork):
+    def __init__(self, hyperparameters):
+        super().__init__(hyperparameters)
+        self.name = "Shallow Fully Connected with dimensions " + str(dims)
+        dims = hyperparameters["dimensions"]
+        self.model = torch.nn.Sequential(
+            torch.nn.Linear(dims[0], dims[1]),
+            torch.nn.LeakyReLU(0.01),
+            torch.nn.Linear(dims[1], dims[2])
+        )
+        self.optimizer = torch.optim.Adam(self.model.parameters())
 
 class CreatureFullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
@@ -91,19 +102,7 @@ class CreatureFullyConnected(CreatureNetwork):
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
 
-class CreatureFullyConnectedShallow(CreatureNetwork):
-    def __init__(self, hyperparameters):
-        super().__init__(hyperparameters)
-        self.name = "Shallow Fully Connected with dimensions " + str(dims)
-        dims = hyperparameters["dimensions"]
-        self.model = torch.nn.Sequential(
-            torch.nn.Linear(dims[0], dims[1]),
-            torch.nn.LeakyReLU(0.01),
-            torch.nn.Linear(dims[1], dims[2])
-        )
-        self.optimizer = torch.optim.Adam(self.model.parameters())
-
-class DeepMLPWithDropout(CreatureNetwork):
+class CreatureDeepWithDropOut(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
         dims = hyperparameters["dimensions"]
@@ -155,7 +154,7 @@ class DeepMLPWithDropout(CreatureNetwork):
 #         )
 #         self.optimizer = torch.optim.Adam(self.model.parameters())
 
-class VeryDeepFullyConnected(CreatureNetwork):
+class CreatureVeryDeepFullyConnected(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
         dims = hyperparameters["dimensions"]
@@ -226,7 +225,7 @@ class VeryDeepFullyConnected(CreatureNetwork):
         )
         self.optimizer = torch.optim.Adam(self.model.parameters())
 
-class VeryDeepFullyConnectedDropOut(CreatureNetwork):
+class CreatureVeryDeepFullyConnectedWithDropout(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
         dims = hyperparameters["dimensions"]
