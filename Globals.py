@@ -4,10 +4,10 @@ import pyautogui as ag
 
 
 DRAW = False
-STORE_CREATURE_POSITIONS = math.inf
+DEFAULT_STORE_CREATURE_POSITIONS = math.inf
 FIRST = "FIRST"
 RECENT = "RECENT"
-STORE_CREATURE_POSITIONS_REFERENCE = RECENT
+DEFAULT_STORE_CREATURE_POSITIONS_REFERENCE = RECENT
 # Currently multiprocessing is ~40x slower than serial network feeding :( Maybe it will be usefull for large quantities of creatures?
 USE_MULTIPROCESSING = (not DRAW) and False  # DO NOT REMOVE "(not DRAW) and"; multiprocessing interferes with pygame's loop
 __width, __height = ag.size()
@@ -105,6 +105,7 @@ DEFAULT_PREY_PARAMS = {
     "y"                 : (DEFAULT_SCREEN_HEIGHT // 2) + 150,
     "initial_direction" : 0.0,
     "initial_energy"    : 100.0,
+    "store_positions"   : (DEFAULT_STORE_CREATURE_POSITIONS, DEFAULT_STORE_CREATURE_POSITIONS_REFERENCE),
     "DTYPE"             : DTYPE
 }
 PREDATOR_ATTRS_NAME = "PRED_ATTRS"
@@ -129,6 +130,7 @@ DEFAULT_PREDATOR_PARAMS = {
     "y"                 : (DEFAULT_SCREEN_HEIGHT // 2) - 150,
     "initial_direction" : 0.0,
     "initial_energy"    : 100.0,
+    "store_positions"   : (DEFAULT_STORE_CREATURE_POSITIONS, DEFAULT_STORE_CREATURE_POSITIONS_REFERENCE),
     "DTYPE"             : DTYPE
 }
 

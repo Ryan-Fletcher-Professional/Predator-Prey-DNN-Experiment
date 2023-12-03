@@ -55,6 +55,8 @@ class Creature:
         attrs = model.attrs
         self.fov = attrs["fov"]
         self.sight_range = attrs["sight_range"]
+        self.max_store_positions = params["store_positions"][0]
+        self.store_positions_reference = params["store_positions"][1]
         self.positions = []
         self.mass = attrs["mass"]
         self.size = attrs["size"]
@@ -181,10 +183,10 @@ class Creature:
         if env.screen_height - self.position[1] < 0:
             self.position[1] = -(env.screen_height - self.position[1])
         self.motion_total += np.linalg.norm(self.position - old_position)
-        if STORE_CREATURE_POSITIONS > 0:
-            if not (STORE_CREATURE_POSITIONS_REFERENCE.Equals(FIRST) and (len(self.positions) >= STORE_CREATURE_POSITIONS)):
+        if self.max_store_positions > 0:
+            if not (self.store_positions_reference.Equals(FIRST) and (len(self.positions) >= self.max_store_positions)):
                 self.positions.append(self.position)
-        if STORE_CREATURE_POSITIONS_REFERENCE.Equals(RECENT) and (len(self.positions) > STORE_CREATURE_POSITIONS):
+        if self.store_positions_reference.Equals(RECENT) and (len(self.positions) > self.max_store_positions):
             self.positions.pop(0)
     
     def draw(self, screen):
@@ -227,7 +229,7 @@ class Creature:
         losses = self.model.current_losses
         self.model.current_losses = []
         results = { "NETWORK" : self.model.NN, "LOSSES" : losses }
-        if STORE_CREATURE_POSITIONS > 0:
+        if DEFAULT_STORE_CREATURE_POSITIONS > 0:
             results["POSITIONS"] = self.positions
         # Add more analytics
         return results
