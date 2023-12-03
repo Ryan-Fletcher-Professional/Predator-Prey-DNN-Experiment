@@ -242,7 +242,7 @@ def worker(task_queue, inputs_queue, creatures):
             if task is None:
                 break
             else:
-                creatures[task].model.get_inputs(queue=inputs_queue, index=task)
+                creatures[task].model.get_inputs(task[0], queue=inputs_queue, index=task[1])
         except Empty:
             pass
 
@@ -306,14 +306,14 @@ class Environment:
         if USE_MULTIPROCESSING:
             all_inputs = [None]*len(self.creatures)
             for i in range(len(self.creatures)):
-                self.task_queue.put(i)
+                self.task_queue.put((delta_time, i))
             while self.inputs_queue.qsize() < len(self.creatures):
                 time.sleep(delta_time / 100)
             while not self.inputs_queue.empty():
                 result = self.inputs_queue.get()
                 all_inputs[result[0]] = result[1]
         else:
-            all_inputs = [creature.model.get_inputs() for creature in self.creatures]
+            all_inputs = [creature.model.get_inputs(delta_time) for creature in self.creatures]
         
         ########################################################################################
         # The following is for testing                                                         #
@@ -383,13 +383,14 @@ class Environment:
         creature_states = []
         for creature in self.creatures:
             creature_states.append({
-                "type"      : creature.model.type,
-                "position"  : creature.position,
-                "direction" : creature.direction,
-                "velocity"  : creature.velocity,
-                "id"        : creature.id,
-                "energy"    : creature.energy,
-                "stun"      : creature.stun
+                "type"              : creature.model.type,
+                "position"          : creature.position,
+                "direction"         : creature.direction,
+                "velocity"          : creature.velocity,
+                "id"                : creature.id,
+                "energy"            : creature.energy,
+                "initial_energy"    : creature.initial_energy,
+                "stun"              : creature.stun
             })
         state_info["creature_states"] = creature_states
         state_info["time"] = self.time

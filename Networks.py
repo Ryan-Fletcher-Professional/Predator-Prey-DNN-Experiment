@@ -113,7 +113,7 @@ class DeepFullyConnected(CreatureNetwork):
 class DeepMLPWithDropout(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
-        dims = [12, 60, 120, 180, 240, 180, 120, 60, 4]
+        dims = [hyperparameters["dimensions"][0], 60, 120, 180, 240, 180, 120, 60, 4]
         self.model = torch.nn.Sequential(
             torch.nn.Linear(dims[0], dims[1]),
             torch.nn.ReLU(),

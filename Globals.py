@@ -156,8 +156,8 @@ DEFAULT_ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
     "num_predators"     : 3
 }
 
-DEFAULT_SELF_INPUTS = ["stun", "energy", "relative_speed"]
-DEFAULT_OTHER_INPUTS = ["relative_speed", "perceived_type", "distance"]
+DEFAULT_SELF_INPUTS = ["stun", "energy"]
+DEFAULT_OTHER_INPUTS = ["relative_speed_x", "relative_speed_y", "perceived_type", "distance"]
 PREY_HYPERPARAMS_NAME = "PREY_HYPERPARAMS"
 DEFAULT_PREY_NETWORK_HYPERPARAMETERS = {
     "input_keys"    : (DEFAULT_SELF_INPUTS, DEFAULT_OTHER_INPUTS),

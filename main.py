@@ -18,7 +18,7 @@ import PreyNetwork
 import PredatorNetwork
 
 id_count = 0
-SPEED_ESTIMATION_DECAY = 0.1  # float in [0,inf). 0 means perfect speed estimation,
+SPEED_ESTIMATION_DECAY = 1.0  # float in [0,inf). 0 means perfect speed estimation,
                               #                   higher k means worse speed estimation past sight_distance
 
 
@@ -58,7 +58,7 @@ class Model:
         self.current_losses = []
         self.attrs = attrs
     
-    def get_inputs(self, queue=None, index=None):
+    def get_inputs(self, delta_time, queue=None, index=None):
         state_info = self.environment.get_state_info()
         relative_state_info = {"time": state_info["time"]}
         creature_states = state_info["creature_states"]
@@ -72,23 +72,27 @@ class Model:
                         hit = True
                         perceived_type = state["type"]
                         distance = sight[1]
-                        relative_speed = np.linalg.norm(self.creature.velocity - state["velocity"]) * math.pow(math.e, -SPEED_ESTIMATION_DECAY * (distance - self.creature.sight_range))
+                        decay = min(1, max(0, math.exp(-SPEED_ESTIMATION_DECAY * ((distance / (self.creature.sight_range / 2)) - 1))))
+                        relative_speed_x = (state["velocity"][0] - self.creature.velocity[0]) * decay / (self.creature.max_velocity * 2)
+                        relative_speed_y = (state["velocity"][1] - self.creature.velocity[1]) * decay / (self.creature.max_velocity * 2)
             if not hit:
                 # These may need to be implemented differently if the networks don't like implicit multimodality
                 perceived_type = UNKNOWN_TYPE
-                distance = 0.0
-                relative_speed = 0.0
+                distance = self.creature.sight_range
+                relative_speed_x = 0.0
+                relative_speed_y = 0.0
                 
             relative_creature_states.append({
-                "type"           : state["type"],
-                "perceived_type" : perceived_type,
-                "distance"       : distance,
-                "relative_speed" : relative_speed,
-                "id"             : state["id"],
-                "energy"         : state["energy"],
-                "stun"           : state["stun"]
+                "type"              : state["type"],
+                "perceived_type"    : perceived_type,
+                "distance"          : distance / self.creature.sight_range,
+                "relative_speed_x"  : relative_speed_x,
+                "relative_speed_y"  : relative_speed_y,
+                "id"                : state["id"],
+                "energy"            : state["energy"] / state["initial_energy"],
+                "stun"              : state["stun"]
             })
-            # MAKE SURE YOU UPDATE GLOBALS.EXTERNAL_CHARACTERISTICS_PER_CREATURE and GLOBALS.INTERNAL_CHARACTERISTICS_PER_CREATURE
+            print(f"\n\nRELATIVE SPEEDS: {[(state['relative_speed_x'], state['relative_speed_y']) for state in relative_creature_states]}")
         relative_state_info["creature_states"] = relative_creature_states
         inputs, loss = self.NN.get_inputs(relative_state_info) if self.creature.alive else NETWORK_OUTPUT_DEFAULT
         self.current_losses.append(loss)
