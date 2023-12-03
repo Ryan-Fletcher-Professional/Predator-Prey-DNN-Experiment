@@ -85,6 +85,7 @@ class Creature:
         self.alive = True
         self.applied_force_this_tick = False
         self.motion_total = 0.0
+        self.preys_eaten = 0
     
     def update_rotation_speed(self, speed):
         """
@@ -112,9 +113,20 @@ class Creature:
     
         if self.stun > 0.0:
             self.rotation_speed = 0.0
-        if (energy_expenditure == 0.0) or ((self.stun > 0.0) and not stunned_this_tick):
-            self.stun = max(0, self.stun - delta_time)
-            self.energy = min(self.initial_energy, self.energy + (abs(self.max_rotation_speed) * delta_time * self.rotation_energy_quotient))
+        
+        recover_energy = False
+        if ALLOW_PREDATOR_ENERGY_DEATH:
+            if self.model.type == PREDATOR:
+                pass
+            else:
+                recover_energy = True
+        else:
+            recover_energy = True
+
+        if recover_energy:
+            if (energy_expenditure == 0.0) or ((self.stun > 0.0) and not stunned_this_tick):
+                self.stun = max(0, self.stun - delta_time)
+                self.energy = min(self.initial_energy, self.energy + (abs(self.max_rotation_speed) * delta_time * self.rotation_energy_quotient))
             
         self.energy -= energy_expenditure
         for ray in self.rays:
@@ -144,11 +156,22 @@ class Creature:
             if self.stun > 0.0:
                 self.rotation_speed = 0.0
                 f = np.array([0.0, 0.0])
-            if(energy_expenditure == 0.0) or ((self.stun > 0.0) and not stunned_this_tick):
-                self.stun = max(0, self.stun - delta_time)
-                self.energy = min(self.initial_energy, self.energy + (np.linalg.norm(np.array([max(self.max_forward_force, self.max_backward_force),
-                                                                                            self.max_sideways_force]))
-                                                                    * self.force_energy_quotient))
+
+            recover_energy = False
+            if ALLOW_PREDATOR_ENERGY_DEATH:
+                if self.model.type == PREDATOR:
+                    pass
+                else:
+                    recover_energy = True
+            else:
+                recover_energy = True
+
+            if recover_energy:
+                if(energy_expenditure == 0.0) or ((self.stun > 0.0) and not stunned_this_tick):
+                    self.stun = max(0, self.stun - delta_time)
+                    self.energy = min(self.initial_energy, self.energy + (np.linalg.norm(np.array([max(self.max_forward_force, self.max_backward_force),
+                                                                                                self.max_sideways_force]))
+                                                                        * self.force_energy_quotient))
             
             self.energy -= energy_expenditure
         if np.linalg.norm(f) > 0.0:
@@ -242,7 +265,7 @@ def worker(task_queue, inputs_queue, creatures):
             if task is None:
                 break
             else:
-                creatures[task].model.get_inputs(queue=inputs_queue, index=task)
+                creatures[task].model.get_inputs(task[0], queue=inputs_queue, index=task[1])
         except Empty:
             pass
 
@@ -291,29 +314,49 @@ class Environment:
             if a.alive and b.alive and\
                (((a.model.type == PREY) and (b.model.type == PREDATOR)) or ((b.model.type == PREY) and (a.model.type == PREDATOR))) and\
                (np.linalg.norm(a.position - b.position) < ((1 - self.EAT_EPSILON) * (a.size + b.size))):
-                a.alive = (a.model.type == PREDATOR)
-                b.alive = (b.model.type == PREDATOR)
+                if a.model.type == PREDATOR:
+                    b.alive = False
+                    a.energy += PREDATION_ENERGY_BOOST
+                    a.preys_eaten += 1
+                else:
+                    #B is the predator here
+                    a.alive = False
+                    b.energy += PREDATION_ENERGY_BOOST
+                    b.preys_eaten += 1
+
         all_prey_eaten = True
         for creature in filter(FILTER_IN_PREY_OBJECTS, self.creatures):
             if creature.alive:
                 all_prey_eaten = False
                 break
         if all_prey_eaten:
-            print(ALL_PREY_EATEN)
-            return ALL_PREY_EATEN
+            print(ALL_PREYS_DEAD)
+            return ALL_PREYS_DEAD
+
+        if ALLOW_PREDATOR_ENERGY_DEATH:
+            #Do the exact same thing as above, but for predators
+            all_predators_dead = True
+            for creature in filter(FILTER_IN_PREDATOR_OBJECTS, self.creatures):
+                if creature.alive:
+                    all_predators_dead = False
+                    break
+
+            if all_predators_dead:
+                print(ALL_PREDATORS_DEAD)
+                return ALL_PREDATORS_DEAD
         
         # Gather creature network feedback
         if USE_MULTIPROCESSING:
             all_inputs = [None]*len(self.creatures)
             for i in range(len(self.creatures)):
-                self.task_queue.put(i)
+                self.task_queue.put((delta_time, i))
             while self.inputs_queue.qsize() < len(self.creatures):
                 time.sleep(delta_time / 100)
             while not self.inputs_queue.empty():
                 result = self.inputs_queue.get()
                 all_inputs[result[0]] = result[1]
         else:
-            all_inputs = [creature.model.get_inputs() for creature in self.creatures]
+            all_inputs = [creature.model.get_inputs(delta_time) for creature in self.creatures]
         
         ########################################################################################
         # The following is for testing                                                         #
@@ -365,6 +408,10 @@ class Environment:
                 creature.update_position(self, delta_time)
             if DRAW:
                 creature.draw(screen)
+            
+            if ALLOW_PREDATOR_ENERGY_DEATH:
+                if (creature.energy < 0.0) and (creature.model.type == PREDATOR):
+                    creature.alive = False
         
         # Timekeeping
         self.steps += 1
@@ -383,13 +430,14 @@ class Environment:
         creature_states = []
         for creature in self.creatures:
             creature_states.append({
-                "type"      : creature.model.type,
-                "position"  : creature.position,
-                "direction" : creature.direction,
-                "velocity"  : creature.velocity,
-                "id"        : creature.id,
-                "energy"    : creature.energy,
-                "stun"      : creature.stun
+                "type"              : creature.model.type,
+                "position"          : creature.position,
+                "direction"         : creature.direction,
+                "velocity"          : creature.velocity,
+                "id"                : creature.id,
+                "energy"            : creature.energy,
+                "initial_energy"    : creature.initial_energy,
+                "stun"              : creature.stun
             })
         state_info["creature_states"] = creature_states
         state_info["time"] = self.time
