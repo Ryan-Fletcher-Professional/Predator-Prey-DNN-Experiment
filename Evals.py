@@ -5,12 +5,14 @@ THIS FILE WRITTEN BY ADVAIT GOSAI
 from main import Model
 import matplotlib.pyplot as plt
 import pickle
+import argparse
 
-data = open("serialized_data_335418.pkl", "rb")
+parser = argparse.ArgumentParser(description='Process the .pkl filename.')
+parser.add_argument('filename', type=str, help='Name of the .pkl file to load')
+args = parser.parse_args()
+
+data = open(args.filename, "rb")
 experiments = pickle.load(data)
-
-print(f"num_experiments: {len(experiments)}")
-print("----------------------------")
 
 end_reason_counts = {}
 end_reason_plots = {}
