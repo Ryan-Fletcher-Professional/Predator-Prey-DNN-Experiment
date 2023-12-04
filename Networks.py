@@ -77,8 +77,8 @@ class CreatureNetwork:
 class CreatureFullyConnectedShallow(CreatureNetwork):
     def __init__(self, hyperparameters):
         super().__init__(hyperparameters)
-        self.name = "Shallow Fully Connected with dimensions " + str(dims)
         dims = hyperparameters["dimensions"]
+        self.name = "Shallow Fully Connected with dimensions " + str(dims)
         self.model = torch.nn.Sequential(
             torch.nn.Linear(dims[0], dims[1]),
             torch.nn.LeakyReLU(0.01),
