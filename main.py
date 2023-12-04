@@ -284,7 +284,12 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         filename = ((name + "_") if name is not None else "") + 'serialized_data' + idn + '.pkl'
         print("Serialized file name:\n\t" + filename)
         with open(filename, 'wb') as file:
-            pickle.dump(experiment_results, file)
+            try:
+                pickle.dump(experiment_results, file)
+            except:
+                print("\n\nPickling error. SERIALIZING MANUALLY! NETWORK WEIGHTS WILL NOT BE STORED!\n\n")
+                with open(filename, 'w') as filee:
+                    filee.write(str(experiment_results))
     # To read experiment_results later:
     # with open('serialized_data' + idn + '.pkl', 'rb') as file:
     #   loaded_object = pickle.load(file)
