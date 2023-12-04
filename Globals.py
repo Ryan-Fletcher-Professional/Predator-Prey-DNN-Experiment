@@ -3,7 +3,7 @@ import numpy as np
 import pyautogui as ag
 
 
-DRAW = True
+DRAW = False
 ALLOW_PREDATOR_ENERGY_DEATH = True
 DEFAULT_STORE_CREATURE_POSITIONS = math.inf
 FIRST = "FIRST"
@@ -30,7 +30,7 @@ else:
     DEFAULT_SCREEN_WIDTH = __override_noscale_size[1]
     DEFAULT_SCREEN_HEIGHT = __override_noscale_size[2]
 DTYPE = np.float64
-PRINT_PROGRESS_STEPS = 10
+PRINT_PROGRESS_STEPS = math.inf
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False
 FOCUS_CREATURE = 0  # Index in environment.creatures
 PREY = -1.0
@@ -52,6 +52,7 @@ CREATURE_COLORS = { PREY: GREEN, PREDATOR: RED }
 SUCCESSFUL_STEP = "success"
 RECIPROCAL_MODE = "reciprocal"
 SUBTRACT_MODE = "subtract"
+DEFAULT_PREY_LOSS_MODE = SUBTRACT_MODE
 USE_GPU = False
 REFERENCE_ANGLE = [1.0, 0.0]
 STUN_TICK_TIME = (85 * 60) / MAX_TPS  # ms : currently ~5 ticks
