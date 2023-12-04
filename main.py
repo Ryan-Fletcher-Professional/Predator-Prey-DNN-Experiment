@@ -331,4 +331,4 @@ if __name__ == "__main__":
         main(name= network_names[i // 2] + "_" + str((i % 2) + 1) + "_YesEnergyDeath_ReciprocalMode", new_allow_energy_death=True, prey_loss_mode=RECIPROCAL_MODE, default_prey_network=network_classes[i // 2][0], default_predator_network=network_classes[i // 2][1])
         main(name= network_names[i // 2] + "_" + str((i % 2) + 1) + "_NoEnergyDeath_ReciprocalMode", new_allow_energy_death=False, prey_loss_mode=RECIPROCAL_MODE, default_prey_network=network_classes[i // 2][0], default_predator_network=network_classes[i // 2][1])
     
-    main(serialize=bool(args.serialize), name=args.name)
+    #main(serialize=bool(args.serialize), name=args.name)
