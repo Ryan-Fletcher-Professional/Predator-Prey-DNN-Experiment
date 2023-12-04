@@ -272,7 +272,7 @@ def worker(task_queue, inputs_queue, creatures):
 
 
 class Environment:
-    def __init__(self, env_params, models, experiment_set_name=None):
+    def __init__(self, env_params, models):
         self.DRAG_COEFFICIENT = env_params["DRAG_COEFFICIENT"]
         self.MIN_TPS = env_params["MIN_TPS"]
         self.EAT_EPSILON = env_params["EAT_EPSILON"]
@@ -284,7 +284,6 @@ class Environment:
         self.creatures = []
         self.steps = 0
         self.time = 0.0
-        self.experiment_set_name = experiment_set_name
         for model in models:
             #print("FROM ENV 253: " + str(model[0]["attrs"]["sight_range"]))
             self.creatures.append(Creature(model[0], model[1], creature_id=model[1].NN.id))
@@ -420,7 +419,7 @@ class Environment:
         self.time += delta_time
         if self.steps % PRINT_PROGRESS_STEPS == 0:
             current_real_time = time.time()
-            print(f"{'' if self.experiment_set_name is None else (self.experiment_set_name + ': ')}Step # {self.steps}:\n\tSimulation time: {(self.time / 1000):.3f}s\n\tReal time: {(current_real_time - self.start_real_time):.3f}s\n\tTotal motions: {[creature.motion_total for creature in self.creatures]}")
+            print(f"Step # {self.steps}:\n\tSimulation time: {(self.time / 1000):.3f}s\n\tReal time: {(current_real_time - self.start_real_time):.3f}s\n\tTotal motions: {[creature.motion_total for creature in self.creatures]}")
 
         return SUCCESSFUL_STEP
     

@@ -3,7 +3,6 @@ THIS FILE WRITTEN BY RYAN FLETCHER
 """
 
 import argparse
-import types
 import multiprocessing
 import pickle
 import numpy as np
@@ -15,7 +14,6 @@ from Globals import *
 if DRAW:
     import pygame
 import Environment
-import Networks
 import PreyNetwork
 import PredatorNetwork
 
@@ -36,7 +34,6 @@ class Model:
         new_id = get_id()
         if not (network is None):
             self.NN = network
-            self.NN.id = new_id
         elif creature_type == PREY:
             self.NN = PreyNetwork.PreyNetwork(hyperparameters, new_id)
         elif creature_type == PREDATOR:
@@ -104,7 +101,7 @@ class Model:
         queue.put((index, inputs))
 
 
-def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY_DEATH, prey_loss_mode=DEFAULT_PREY_LOSS_MODE, default_prey_network=None, default_predator_network=None):
+def main(serialize=True, name=None):
     """
         Instructions for experimentation:
         Set PreyNetwork.PreyNetwork parent class to the appropriate Network.
@@ -115,12 +112,10 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         Run in the terminal:
             python3 main.py --name "<a descriptive name for the serialization file>"
     """
-    if name is not None:
-        print(f"Starting experiment set: {name}")
     experiments = []
     previous_experiment = DEFAULT_EXPERIMENT
     max_max_sim_time = previous_experiment[MAX_SIM_SECONDS]
-    ALLOW_PREDATOR_ENERGY_DEATH = new_allow_energy_death  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
+    #ALLOW_PREDATOR_ENERGY_DEATH = False  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
     for i in range(100):
         #############################################################################################################
         experiment = copy.deepcopy(previous_experiment)
@@ -129,7 +124,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         # COMMENT THE FOLLOWING LINE WHEN NOT TESTING
         # experiment[MAX_SIM_SECONDS] = 30
         
-        experiment[PREY_HYPERPARAMS_NAME]["loss_mode"] = prey_loss_mode  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
+        #experiment[PREY_HYPERPARAMS_NAME]["loss_mode"] = RECIPROCAL_MODE  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
         
         # Modify experiment parameters
         # In these experiments we're starting the creatures off with low energy so they can learn what it means.
@@ -148,7 +143,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
     
     experiment_results = []
     for i in range(len(experiments)):
-        print(f"{('Experiment set ' + name + ': ') if name is not None else ''}Starting experiment {i + 1}")
+        print(f"Starting experiment {i + 1}")
         experiment = experiments[i]
         print("Experiment details:\n\t" + str(experiment[PREDATOR_ATTRS_NAME]))
         
@@ -159,20 +154,14 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         
         running = True
         
-        if i == 0:
-            if default_prey_network is not None:
-                default_prey_network = default_prey_network(experiment[PREY_HYPERPARAMS_NAME], None)
-            if default_predator_network is not None:
-                default_predator_network = default_predator_network(experiment[PREDATOR_HYPERPARAMS_NAME], None)
-        
         # Currently specified relative to the manually-set default x and y in <>__PARAMS in Globals
         num_preys = experiment[ENV_PARAMS_NAME]["num_preys"]
         num_predators = experiment[ENV_PARAMS_NAME]["num_predators"]
-        models = [(copy.deepcopy(experiment[PREY_PARAMS_NAME]), Model(PREY, copy.deepcopy(experiment[PREY_ATTRS_NAME]), experiment[PREY_HYPERPARAMS_NAME], network=default_prey_network if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREY][j % len(experiment_results[i - 1][PREY])]["NETWORK"])) for j in range(num_preys)] +\
-                 [(copy.deepcopy(experiment[PREDATOR_PARAMS_NAME]), Model(PREDATOR, copy.deepcopy(experiment[PREDATOR_ATTRS_NAME]), experiment[PREDATOR_HYPERPARAMS_NAME], network=default_predator_network if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREDATOR][j % len(experiment_results[i - 1][PREDATOR])]["NETWORK"])) for j in range(num_predators)]
+        models = [(copy.deepcopy(experiment[PREY_PARAMS_NAME]), Model(PREY, copy.deepcopy(experiment[PREY_ATTRS_NAME]), experiment[PREY_HYPERPARAMS_NAME], network=None if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREY][j % len(experiment_results[i - 1][PREY])]["NETWORK"])) for j in range(num_preys)] +\
+                 [(copy.deepcopy(experiment[PREDATOR_PARAMS_NAME]), Model(PREDATOR, copy.deepcopy(experiment[PREDATOR_ATTRS_NAME]), experiment[PREDATOR_HYPERPARAMS_NAME], network=None if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREDATOR][j % len(experiment_results[i - 1][PREDATOR])]["NETWORK"])) for j in range(num_predators)]
         #print("ATTRS from model\n\n" + str(models[3][1].sight_range) + "\n\n")
         
-        env = Environment.Environment(experiment[ENV_PARAMS_NAME], models, experiment_set_name=name)
+        env = Environment.Environment(experiment[ENV_PARAMS_NAME], models)
         
         screen_width = env.screen_width
         screen_height = env.screen_height
@@ -296,39 +285,4 @@ if __name__ == "__main__":
     parser.add_argument("--name", help="Optional argument", default=None)
     parser.add_argument("--serialize", help="Optional argument", default="True")
     args = parser.parse_args()
-    
-    network_names = ["Shallow", "3-Layer", "DeepDropout", "VeryDeep", "VeryDeepDropout"]
-    network_classes = [(types.new_class("ModularShallowPrey",
-                                        (PreyNetwork.PreyNetwork, Networks.CreatureFullyConnectedShallow)),
-                        types.new_class("ModularShallowPredator",
-                                        (PredatorNetwork.PredatorNetwork, Networks.CreatureFullyConnectedShallow))),
-                       (types.new_class("Modular3LayerPrey",
-                                        (PreyNetwork.PreyNetwork, Networks.CreatureFullyConnected)),
-                        types.new_class("Modular3LayerPredator",
-                                        (PredatorNetwork.PredatorNetwork, Networks.CreatureFullyConnected))),
-                       (types.new_class("ModularDeepDropoutPrey",
-                                        (PreyNetwork.PreyNetwork, Networks.CreatureDeepWithDropOut)),
-                        types.new_class("ModularDeepDropoutPredator",
-                                        (PredatorNetwork.PredatorNetwork, Networks.CreatureDeepWithDropOut))),
-                       (types.new_class("ModularVeryDeepPrey",
-                                        (PreyNetwork.PreyNetwork, Networks.CreatureVeryDeepFullyConnected)),
-                        types.new_class("ModularVeryDeepPredator",
-                                        (PredatorNetwork.PredatorNetwork, Networks.CreatureVeryDeepFullyConnected))),
-                       (types.new_class("ModularVeryDeepDropoutPrey",
-                                        (PreyNetwork.PreyNetwork, Networks.CreatureVeryDeepFullyConnectedWithDropout)),
-                        types.new_class("ModularVeryDeepDropoutPredator",
-                                        (PredatorNetwork.PredatorNetwork, Networks.CreatureVeryDeepFullyConnectedWithDropout)))]
-    hyperparameter_tuples = [(DIMS_FOR_SHALLOW_EXP_1_PREY, DIMS_FOR_SHALLOW_EXP_1_PRED), (DIMS_FOR_FCN_EXP_2_PREY, DIMS_FOR_FCN_EXP_2_PRED),
-                             (DIMS_FOR_FCN_EXP_1_PREY, DIMS_FOR_FCN_EXP_1_PRED), (DIMS_FOR_FCN_EXP_2_PREY, DIMS_FOR_FCN_EXP_2_PRED),
-                             (DIMS_FOR_DEEP_FCN_EXP_1_PREY, DIMS_FOR_DEEP_FCN_EXP_1_PRED), (DIMS_FOR_DEEP_FCN_EXP_2_PREY, DIMS_FOR_DEEP_FCN_EXP_2_PRED),
-                             (DIMS_FOR_VERY_DEEP_FCN_EXP_1_PREY, DIMS_FOR_VERY_DEEP_FCN_EXP_1_PRED), (DIMS_FOR_VERY_DEEP_FCN_EXP_2_PREY, DIMS_FOR_VERY_DEEP_FCN_EXP_2_PRED),
-                             (DIMS_FOR_VERY_DEEP_FCN_EXP_1_PREY, DIMS_FOR_VERY_DEEP_FCN_EXP_1_PRED), (DIMS_FOR_VERY_DEEP_FCN_EXP_2_PREY, DIMS_FOR_VERY_DEEP_FCN_EXP_2_PRED)]
-    for i in range(len(hyperparameter_tuples)):
-        DEFAULT_PREY_NETWORK_HYPERPARAMETERS["dimensions"] = hyperparameter_tuples[i][0]
-        DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"] = hyperparameter_tuples[i][1]
-        main(name= network_names[i // 2] + "_" + str((i % 2) + 1) + "_YesEnergyDeath_SubtractMode", new_allow_energy_death=True, prey_loss_mode=DEFAULT_PREY_LOSS_MODE, default_prey_network=network_classes[i // 2][0], default_predator_network=network_classes[i // 2][1])
-        main(name= network_names[i // 2] + "_" + str((i % 2) + 1) + "_NoEnergyDeath_SubtractMode", new_allow_energy_death=False, prey_loss_mode=DEFAULT_PREY_LOSS_MODE, default_prey_network=network_classes[i // 2][0], default_predator_network=network_classes[i // 2][1])
-        main(name= network_names[i // 2] + "_" + str((i % 2) + 1) + "_YesEnergyDeath_ReciprocalMode", new_allow_energy_death=True, prey_loss_mode=RECIPROCAL_MODE, default_prey_network=network_classes[i // 2][0], default_predator_network=network_classes[i // 2][1])
-        main(name= network_names[i // 2] + "_" + str((i % 2) + 1) + "_NoEnergyDeath_ReciprocalMode", new_allow_energy_death=False, prey_loss_mode=RECIPROCAL_MODE, default_prey_network=network_classes[i // 2][0], default_predator_network=network_classes[i // 2][1])
-    
     main(serialize=bool(args.serialize), name=args.name)
