@@ -255,6 +255,8 @@ class Creature:
         results = { "NETWORK" : self.model.NN, "LOSSES" : losses }
         if DEFAULT_STORE_CREATURE_POSITIONS > 0:
             results["POSITIONS"] = self.positions
+        if self.model.type == PREDATOR:
+            results["PREYS_EATEN"] = self.preys_eaten
         # Add more analytics
         return results
     
