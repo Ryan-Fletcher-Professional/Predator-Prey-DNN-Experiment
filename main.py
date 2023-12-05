@@ -150,7 +150,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
     for i in range(len(experiments)):
         print(f"{('Experiment set ' + name + ': ') if name is not None else ''}Starting experiment {i + 1}")
         experiment = experiments[i]
-        print("Experiment details:\n\t" + str(experiment[PREDATOR_ATTRS_NAME]))
+        #print("Experiment details:\n\t" + "Max sim seconds: " + str(experiment[MAX_SIM_SECONDS]))
         
         if DRAW:
             pygame.init()
