@@ -172,7 +172,7 @@ for i, exp in enumerate(experiments):
     end_reason_plots[exp['end_reason']].append((i + 1, exp['sim_time']))
 
     # Intermediate plotting and printing for specific intervals
-    if (i % PRINT_EVAL_STEPS == 0) or (i == len(experiments) - 1):
+    if ((i % PRINT_EVAL_STEPS == 0) or (i == len(experiments) - 1)) and SHOW_LOSS_PLOTS:
         print(f"EXPERIMENT {i + 1}")
         preds = exp["PREDATORS"]
         preys = exp["PREYS"]
@@ -190,8 +190,7 @@ for i, exp in enumerate(experiments):
                 axs[row, col].set_xlabel("Iteration")
                 axs[row, col].set_ylabel("Losses")
         plt.tight_layout(pad=3.0)
-        if SHOW_PLOTS:
-            plt.show()
+        plt.show()
 
         fig, axs = plt.subplots(num_plots // 2, 2, figsize=(15, 2 * num_plots))
         fig.suptitle(f"Prey Loss; Experiment {i+1}")  # ; {preys[0]['NETWORK'].name}
@@ -203,8 +202,7 @@ for i, exp in enumerate(experiments):
                 axs[row, col].set_xlabel("Iteration")
                 axs[row, col].set_ylabel("Losses")
         plt.tight_layout(pad=3.0)
-        if SHOW_PLOTS:
-            plt.show()
+        plt.show()
         print("----------------------------")
 
 print(end_reason_counts)
@@ -221,5 +219,5 @@ plt.title("End Reasons for Each Experiment")
 plt.xlabel("Experiment Number")
 plt.ylabel("Simulation Time")
 plt.legend()
-if SHOW_PLOTS:
+if SHOW_END_PLOTS:
     plt.show()
