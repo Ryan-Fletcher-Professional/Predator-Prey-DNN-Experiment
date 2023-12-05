@@ -131,7 +131,6 @@ for exp_str in experiment_strs:
     while(last_index < len(exp_str) - 6):
         predator = {}
         index = exp_str.find("{", last_index + 1)
-        print("index: " + str(index))
         loss_index = exp_str.find("LOSSES\':", index) + len("LOSSES\':")
         #print("loss index: " + str(loss_index))
         positions_index = exp_str.find("POSITIONS\':", loss_index)
