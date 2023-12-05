@@ -31,6 +31,7 @@ else:
     DEFAULT_SCREEN_HEIGHT = __override_noscale_size[2]
 DTYPE = np.float64
 PRINT_PROGRESS_STEPS = math.inf
+PRINT_EVAL_STEPS = 10
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False
 FOCUS_CREATURE = 0  # Index in environment.creatures
 PREY = -1.0
