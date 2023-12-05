@@ -212,7 +212,7 @@ end_reason_marker = {reason: markers[i % len(markers)] for i, reason in enumerat
 plt.figure(figsize=(10, 6))
 for reason, data in end_reason_plots.items():
     x, y = zip(*data)
-    y = [round(float(y_i), 2) for y_i in y]
+    y = [round(float(y_i)/1000, 2) for y_i in y]
     plt.scatter(x, y, marker=end_reason_marker[reason], label=reason)
 
 plt.title("End Reasons for Each Experiment")
