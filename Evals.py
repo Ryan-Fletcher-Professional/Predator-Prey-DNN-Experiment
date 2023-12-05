@@ -122,6 +122,7 @@ for exp_str in experiment_strs:
         positions_index +=  len("POSITIONS\':")
         prey["POSITIONS"] = list(map(lambda x : np.array(list(map(lambda y : float(y), x[5:][1:-1][1:-1].split(',')))), exp_str[positions_index:positions_end][1:-1].split(',array')))
         preys.append(prey)
+        last_index = positions_end
     
     print("Indexing predators")
         
@@ -139,6 +140,7 @@ for exp_str in experiment_strs:
         positions_index +=  len("POSITIONS\':")
         predator["POSITIONS"] = list(map(lambda x : np.array(list(map(lambda y : float(y), x[5:][1:-1][1:-1].split(',')))), exp_str[positions_index:positions_end][1:-1].split(',array')))
         predators.append(predator)
+        last_index = positions_end
     experiment["PREYS"] = preys
     experiment["PREDATORS"] = predators
     experiment["num_preys"] = len(preys)
