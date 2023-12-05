@@ -1,3 +1,7 @@
+__pycache__
 __pycache__/*
+.vscode
 .vscode/*
 *.pkl
+data
+data/*
