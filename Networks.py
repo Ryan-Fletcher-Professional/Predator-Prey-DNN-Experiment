@@ -26,16 +26,11 @@ class CreatureNetwork:
     def get_inputs(self, state_info):
         """
         :param state_info: See Environment.get_state_info() return specification.
-        :return: [ 2d-array : [float forward force, float rightwards force], float clockwise rotation in [0,2pi) ]
+        :return: [ 2d-array : [float forward force, float rightwards force], float clockwise rotation in [0,2pi) ], loss
         """
         # Transform into a 1d array with environment info first then info about all other relevent creatures.
         input = self.transform(state_info)
-        scores, loss = self.train(self.model, self.optimizer, state_info, input)
-        # This goes elsewhere?
-        # self.model.eval()
-        # scores = None
-        # with torch.no_grad():
-        #     scores = self.model(input)            
+        scores, loss = self.train(self.model, self.optimizer, state_info, input)           
         return [[scores[0].item(), scores[1].item()], scores[2].item()], loss
     
     def train(self, model, optimizer, state_info, input):
@@ -53,7 +48,14 @@ class CreatureNetwork:
         model = model.to(device=device)  # move the model parameters to CPU/GPU
         
         scores = model(input)
-        loss = self.loss(state_info)
+        loss, closest_dist = self.loss(state_info)
+        
+        # Adjust learning rate dynamically so that creatures learn less during the long periods of time when they spend
+        if ADJUST_LEARNING_RATE_WITH_DISTANCE:
+            # Very high (caps at 2x around <=~33% of max distance) when fairly close, drops fast when distance approaches max
+            new_lr = self.base_lr * min(2, max(self.min_lr, np.log((-2 * (closest_dist / self.max_distance)) + 2.25) + 1.5))
+            for g in self.optimizer.param_groups:
+                g['lr'] = new_lr
 
         # Zero out all of the gradients for the variables which the optimizer
         # will update.
@@ -66,11 +68,6 @@ class CreatureNetwork:
         # Actually update the parameters of the model using the gradients
         # computed by the backwards pass.
         optimizer.step()
-
-        # if t % print_every == 0:
-        #     print('Iteration %d, loss = %.4f' % (t, loss.item()))
-        #     check_accuracy_part34(loader_val, model)
-        #     print()
         
         return scores, loss.item()
 

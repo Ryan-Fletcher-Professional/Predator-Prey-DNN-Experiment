@@ -11,6 +11,8 @@ import Networks
 class PreyNetwork(Networks.CreatureVeryDeepFullyConnectedWithDropout):
     def __init__(self, hyperparameters, self_id):
         super().__init__(hyperparameters)
+        self.base_lr = self.optimizer.param_groups[0]["lr"]
+        self.min_lr = 0.15  # Minimum proportion of base_lr at any given step (see Networks.py line "new_lr = ...")
         self.loss_mode = hyperparameters.get("loss_mode", SUBTRACT_MODE)
         self.id = self_id
         
@@ -38,16 +40,16 @@ class PreyNetwork(Networks.CreatureVeryDeepFullyConnectedWithDropout):
         for creature in creature_states:
             if creature["distance"] < closest["distance"]:
                 closest = creature
+        
+        loss = None
         if self.loss_mode == RECIPROCAL_MODE:
-            r = torch.tensor(1.0 / closest["distance"], requires_grad=True)
+            loss = torch.tensor(1.0 / closest["distance"], requires_grad=True)
             if self.print_loss:
-                print(f"\nLoss for {self.id}:\n\t{r}")
-            return r
+                print(f"\nLoss for {self.id}:\n\t{loss}")
         elif self.loss_mode == SUBTRACT_MODE:
-            r = torch.tensor(-closest["distance"] + self.max_distance, requires_grad=True)
+            loss = torch.tensor(-closest["distance"] + self.max_distance, requires_grad=True)
             if self.print_loss:
-                print(f"\nLoss for {self.id}:\n\t{r}")
-            return r
+                print(f"\nLoss for {self.id}:\n\t{loss}")
         elif self.loss_mode == BIASED_SUBTRACT_MODE:  # Written by Advait Gosai, modified by Ryan Fletcher
             dif = closest["relative_speed_x"] + closest["relative_speed_y"]
             theta = ANGLE_BETWEEN(self_position, closest["position"])
@@ -55,7 +57,8 @@ class PreyNetwork(Networks.CreatureVeryDeepFullyConnectedWithDropout):
             # sign = (closest["relative_speed_x"] + closest["relative_speed_y"]) / abs(closest["relative_speed_x"] + closest["relative_speed_y"])
             # relative_speed = sign * math.sqrt((closest["relative_speed_x"] ** 2) + (closest["relative_speed_y"] ** 2))
             bias = (self.max_distance / 20) * (1 - (relative_speed / self.max_velocity))
-            r = torch.tensor(-closest["distance"] + self.max_distance + bias, requires_grad=True)
+            loss = torch.tensor(-closest["distance"] + self.max_distance + bias, requires_grad=True)
             if self.print_loss:
-                print(f"\nLoss for {self.id}:\n\t{r}")
-            return r
+                print(f"\nLoss for {self.id}:\n\t{loss}")
+                
+        return loss, closest["distance"]
