@@ -16,7 +16,6 @@ if DRAW:
 import Environment
 import PreyNetwork
 import PredatorNetwork
-import types
 import Networks
 
 id_count = 0
@@ -294,25 +293,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     network_names = ["Shallow", "3-Layer", "DeepDropout", "VeryDeep", "VeryDeepDropout"]
-    network_classes = [(None,
-                        types.new_class("ModularShallowPredator",
-                                        (PredatorNetwork.PredatorNetwork, Networks.CreatureFullyConnectedShallow))),
-                       (types.new_class("Modular3LayerPrey",
-                                        (PreyNetwork.PreyNetwork, Networks.CreatureFullyConnected)),
-                        types.new_class("Modular3LayerPredator",
-                                        (PredatorNetwork.PredatorNetwork, Networks.CreatureFullyConnected))),
-                       (types.new_class("ModularDeepDropoutPrey",
-                                        (PreyNetwork.PreyNetwork, Networks.CreatureDeepWithDropOut)),
-                        types.new_class("ModularDeepDropoutPredator",
-                                        (PredatorNetwork.PredatorNetwork, Networks.CreatureDeepWithDropOut))),
-                       (types.new_class("ModularVeryDeepPrey",
-                                        (PreyNetwork.PreyNetwork, Networks.CreatureVeryDeepFullyConnected)),
-                        types.new_class("ModularVeryDeepPredator",
-                                        (PredatorNetwork.PredatorNetwork, Networks.CreatureVeryDeepFullyConnected))),
-                       (types.new_class("ModularVeryDeepDropoutPrey",
-                                        (PreyNetwork.PreyNetwork, Networks.CreatureVeryDeepFullyConnectedWithDropout)),
-                        types.new_class("ModularVeryDeepDropoutPredator",
-                                        (PredatorNetwork.PredatorNetwork, Networks.CreatureVeryDeepFullyConnectedWithDropout)))]
+    
     hyperparameter_tuples = [(DIMS_FOR_SHALLOW_EXP_1_PREY, DIMS_FOR_SHALLOW_EXP_1_PRED), (DIMS_FOR_FCN_EXP_2_PREY, DIMS_FOR_FCN_EXP_2_PRED),
                              (DIMS_FOR_FCN_EXP_1_PREY, DIMS_FOR_FCN_EXP_1_PRED), (DIMS_FOR_FCN_EXP_2_PREY, DIMS_FOR_FCN_EXP_2_PRED),
                              (DIMS_FOR_DEEP_FCN_EXP_1_PREY, DIMS_FOR_DEEP_FCN_EXP_1_PRED), (DIMS_FOR_DEEP_FCN_EXP_2_PREY, DIMS_FOR_DEEP_FCN_EXP_2_PRED),

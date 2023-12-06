@@ -3,8 +3,7 @@ import pickle
 
 
 def LoadPickled(filename):
-    data = open(filename, "rb")
-    return pickle.load(data)
+    return pickle.load(open(filename, "rb"))
 
 
 def LoadPlaintext(filename):

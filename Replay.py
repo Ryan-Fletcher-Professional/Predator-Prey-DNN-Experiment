@@ -2,6 +2,7 @@ import argparse
 import pygame
 import Loader
 from Globals import *
+from main import Model
 
 parser = argparse.ArgumentParser(description='Process the .pkl filename.')
 parser.add_argument('--filename', type=str, help='Name of the .pkl file to load')
@@ -10,7 +11,7 @@ parser.add_argument('--update_skip', type=int, default=0, help="Optional number 
 parser.add_argument('--start_time', type=int, default=0, help="Optional number of ticks to ignore before beginning display")
 args = parser.parse_args()
 
-experiments = Loader.LoadPlaintext(args.filename)  # CHANGE THIS METHOD CALL APPROPRIATELY
+experiments = Loader.LoadPickled(args.filename)  # CHANGE THIS METHOD CALL APPROPRIATELY
 
 for experiment in experiments:
     screen_width = DEFAULT_ENVIRONMENT_PARAMETERS["screen_width"]
@@ -25,8 +26,14 @@ for experiment in experiments:
     pygame.init()
     screen = pygame.display.set_mode((screen_width, screen_height))
     clock = pygame.time.Clock()
-    preys = experiment["PREYS"]
-    predators = experiment["PREDATORS"]
+    try:
+        preys = experiment["PREYS"]
+    except KeyError:
+        preys = experiment[PREY]
+    try:
+        predators = experiment["PREDATORS"]
+    except KeyError:
+        predators = experiment[PREDATOR]
     running = True
     time = args.start_time
     skip_time = 0
@@ -39,7 +46,7 @@ for experiment in experiments:
         clock.tick(DEFAULT_MIN_TPS)
         
         dead = 0
-        for creature, color in zip(preys + predators, ([GREEN] * len(experiment["PREYS"])) + ([RED] * len(experiment["PREDATORS"]))):
+        for creature, color in zip(preys + predators, ([GREEN] * len(preys)) + ([RED] * len(predators))):
             try:
                 position = creature["POSITIONS"][time]
                 print(position)
@@ -63,7 +70,7 @@ for experiment in experiments:
             except Exception as e:
                 dead += 1
                 print(e)
-        if dead >= len(experiment["PREYS"]) + len(experiment["PREDATORS"]):
+        if dead >= len(preys) + len(predators):
             running = False
         
         pygame.display.flip()
