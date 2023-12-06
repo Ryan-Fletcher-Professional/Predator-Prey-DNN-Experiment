@@ -40,37 +40,40 @@ def LoadPlaintext(filename):
             loss_index = exp_str.find("LOSSES\':", index) + len("LOSSES\':")
             positions_index = exp_str.find("POSITIONS\':", loss_index)
             loss_end = positions_index - 2
-            positions_end = exp_str.find("}", positions_index)
+            directions_index = exp_str.find("DIRECTIONS\':", positions_index) + len("DIRECTIONS\':")
+            positions_end = directions_index - len("DIRECTIONS\':") - 2
             prey["LOSSES"] = list(map(lambda x : float(x), exp_str[loss_index:loss_end][1:-1].split(',')))
-            positions_index +=  len("POSITIONS\':")
+            positions_index += len("POSITIONS\':")
             units = exp_str[positions_index:positions_end][1:-1].split(',array')
             units[0] = units[0][5:]
             prey["POSITIONS"] = list(map(lambda x : np.array(list(map(lambda y : float(y), x[1:-1][1:-1].split(',')))), units))
+            directions_end = exp_str.find("]", directions_index)
+            prey["DIRECTIONS"] = list(map(lambda x : float(x), exp_str[directions_index:directions_end][1:-1].split(",")))
             preys.append(prey)
-            last_index = positions_end
+            last_index = directions_end
             
         index = predators
         predators = []
-        end_of_exp = exp_str.find("}]}") + 3
         last_index = index
         while(last_index < len(exp_str) - 6):
             predator = {}
             index = exp_str.find("{", last_index + 1)
+            if index < 0:
+                break
             loss_index = exp_str.find("LOSSES\':", index) + len("LOSSES\':")
-            #print("loss index: " + str(loss_index))
             positions_index = exp_str.find("POSITIONS\':", loss_index)
-            #print("positions index: " + str(positions_index))
             loss_end = positions_index - 2
-            #print("loss end: " + str(loss_end))
-            positions_end = exp_str.find("}", positions_index)
-            #print("positions end: " + str(positions_end))
+            directions_index = exp_str.find("DIRECTIONS\':", positions_index) + len("DIRECTIONS\':")
+            positions_end = directions_index - len("DIRECTIONS\':") - 2
             predator["LOSSES"] = list(map(lambda x : float(x), exp_str[loss_index:loss_end][1:-1].split(',')))
             positions_index +=  len("POSITIONS\':")
             units = exp_str[positions_index:positions_end][1:-1].split(',array')
             units[0] = units[0][5:]
             predator["POSITIONS"] = list(map(lambda x : np.array(list(map(lambda y : float(y), x[1:-1][1:-1].split(',')))), units))
+            directions_end = exp_str.find("]", directions_index)
+            predator["DIRECTIONS"] = list(map(lambda x : float(x), exp_str[directions_index:directions_end][1:-1].split(",")))
             predators.append(predator)
-            last_index = positions_end
+            last_index = directions_end
         experiment["PREYS"] = preys
         experiment["PREDATORS"] = predators
         experiment["num_preys"] = len(preys)

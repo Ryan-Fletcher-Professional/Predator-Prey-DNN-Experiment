@@ -253,7 +253,6 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         results["sim_time"] = env.time
         results["end_reason"] = end_reason
         results[PREY] = [ creature.get_results() for creature in filter(FILTER_IN_PREY_OBJECTS, env.creatures) ]
-        print([creature.get_results() for creature in filter(FILTER_IN_PREY_OBJECTS, env.creatures[0:2])])
         results[PREDATOR] = [ creature.get_results() for creature in filter(FILTER_IN_PREDATOR_OBJECTS, env.creatures) ]
         experiment_results.append(results)
         
@@ -282,7 +281,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
     
     if serialize:
         idn = "_" + str(int(time.time() - 1701300000))
-        filename = ((name + "_") if name is not None else "") + 'serialized_data' + idn + '.pkl'
+        filename = ('data/' + (name + "_") if name is not None else "") + 'serialized_data' + idn + '.pkl'
         print("Serialized file name:\n\t" + filename)
         with open(filename, 'wb') as file:
             try:
