@@ -117,7 +117,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
     previous_experiment = DEFAULT_EXPERIMENT
     max_max_sim_time = previous_experiment[MAX_SIM_SECONDS]
     ALLOW_PREDATOR_ENERGY_DEATH = new_allow_energy_death  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
-    for i in range(5):
+    for i in range(100):
         #############################################################################################################
         experiment = copy.deepcopy(previous_experiment)
         #############################################################################################################
@@ -292,19 +292,21 @@ if __name__ == "__main__":
     parser.add_argument("--serialize", help="Optional argument", default="True")
     args = parser.parse_args()
     
-    network_names = ["Shallow", "3-Layer", "DeepDropout", "VeryDeep", "VeryDeepDropout"]
-    
-    hyperparameter_tuples = [(DIMS_FOR_SHALLOW_EXP_1_PREY, DIMS_FOR_SHALLOW_EXP_1_PRED), (DIMS_FOR_FCN_EXP_2_PREY, DIMS_FOR_FCN_EXP_2_PRED),
-                             (DIMS_FOR_FCN_EXP_1_PREY, DIMS_FOR_FCN_EXP_1_PRED), (DIMS_FOR_FCN_EXP_2_PREY, DIMS_FOR_FCN_EXP_2_PRED),
-                             (DIMS_FOR_DEEP_FCN_EXP_1_PREY, DIMS_FOR_DEEP_FCN_EXP_1_PRED), (DIMS_FOR_DEEP_FCN_EXP_2_PREY, DIMS_FOR_DEEP_FCN_EXP_2_PRED),
-                             (DIMS_FOR_VERY_DEEP_FCN_EXP_1_PREY, DIMS_FOR_VERY_DEEP_FCN_EXP_1_PRED), (DIMS_FOR_VERY_DEEP_FCN_EXP_2_PREY, DIMS_FOR_VERY_DEEP_FCN_EXP_2_PRED),
-                             (DIMS_FOR_VERY_DEEP_FCN_EXP_1_PREY, DIMS_FOR_VERY_DEEP_FCN_EXP_1_PRED), (DIMS_FOR_VERY_DEEP_FCN_EXP_2_PREY, DIMS_FOR_VERY_DEEP_FCN_EXP_2_PRED)]
-    for i in range(len(hyperparameter_tuples)):
-        DEFAULT_PREY_NETWORK_HYPERPARAMETERS["dimensions"] = hyperparameter_tuples[i][0]
-        DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"] = hyperparameter_tuples[i][1]
-        main(name= network_names[i // 2] + "_" + str((i % 2) + 1) + "_YesEnergyDeath_SubtractMode", new_allow_energy_death=True, prey_loss_mode=DEFAULT_PREY_LOSS_MODE, default_prey_network=network_classes[i // 2][0], default_predator_network=network_classes[i // 2][1])
-        main(name= network_names[i // 2] + "_" + str((i % 2) + 1) + "_NoEnergyDeath_SubtractMode", new_allow_energy_death=False, prey_loss_mode=DEFAULT_PREY_LOSS_MODE, default_prey_network=network_classes[i // 2][0], default_predator_network=network_classes[i // 2][1])
-        main(name= network_names[i // 2] + "_" + str((i % 2) + 1) + "_YesEnergyDeath_ReciprocalMode", new_allow_energy_death=True, prey_loss_mode=RECIPROCAL_MODE, default_prey_network=network_classes[i // 2][0], default_predator_network=network_classes[i // 2][1])
-        main(name= network_names[i // 2] + "_" + str((i % 2) + 1) + "_NoEnergyDeath_ReciprocalMode", new_allow_energy_death=False, prey_loss_mode=RECIPROCAL_MODE, default_prey_network=network_classes[i // 2][0], default_predator_network=network_classes[i // 2][1])
-    
-    #main(serialize=bool(args.serialize), name=args.name)
+    network_names = ["VERY_DEEP_DROPOUT_NETWORK_5_NOENERGY_RECIPROCAL",
+                     "VERY_DEEP_DROPOUT_NETWORK_5_YESENERGY_SUBTRACT",
+                     "VERY_DEEP_DROPOUT_NETWORK_5_NOENERGY_SUBTRACT",
+                     "VERY_DEEP_DROPOUT_NETWORK_1_NOENERGY_RECIPROCAL",
+                     "VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_SUBTRACT",
+                     "VERY_DEEP_DROPOUT_NETWORK_1_NOENERGY_SUBTRACT",
+                     "VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_RECIPROCAL"]
+    network_hyper_hyper_params = [VERY_DEEP_DROPOUT_NETWORK_5_NOENERGY_RECIPROCAL,
+                                  VERY_DEEP_DROPOUT_NETWORK_5_YESENERGY_SUBTRACT,
+                                  VERY_DEEP_DROPOUT_NETWORK_5_NOENERGY_SUBTRACT,
+                                  VERY_DEEP_DROPOUT_NETWORK_1_NOENERGY_RECIPROCAL,
+                                  VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_SUBTRACT,
+                                  VERY_DEEP_DROPOUT_NETWORK_1_NOENERGY_SUBTRACT,
+                                  VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_RECIPROCAL]
+    for name, network in zip(network_names, network_hyper_hyper_params):
+        DEFAULT_PREY_NETWORK_HYPERPARAMETERS["dimensions"] = network[0]
+        DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"] = network[1]
+        main(name=name, new_allow_energy_death=network[2], prey_loss_mode=network[3])
