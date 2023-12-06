@@ -16,6 +16,8 @@ if DRAW:
 import Environment
 import PreyNetwork
 import PredatorNetwork
+import types
+import Networks
 
 id_count = 0
 SPEED_ESTIMATION_DECAY = 1.0  # float in [0,inf). 0 means perfect speed estimation,
