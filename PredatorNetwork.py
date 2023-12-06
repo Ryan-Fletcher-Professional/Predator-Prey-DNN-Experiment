@@ -11,6 +11,8 @@ import Networks
 class PredatorNetwork(Networks.CreatureVeryDeepFullyConnectedWithDropout):
     def __init__(self, hyperparameters, self_id):
         super().__init__(hyperparameters)
+        self.base_lr = self.optimizer.param_groups[0]["lr"]
+        self.min_lr = 0.1  # Minimum proportion of base_lr at any given step (see Networks.py line "new_lr = ...")
         self.id = self_id
     
     def transform(self, state_info):
