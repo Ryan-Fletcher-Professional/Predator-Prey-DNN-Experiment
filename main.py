@@ -3,7 +3,6 @@ THIS FILE WRITTEN BY RYAN FLETCHER
 """
 
 import argparse
-import types
 import multiprocessing
 import pickle
 import numpy as np
@@ -15,7 +14,6 @@ from Globals import *
 if DRAW:
     import pygame
 import Environment
-import Networks
 import PreyNetwork
 import PredatorNetwork
 
@@ -36,7 +34,6 @@ class Model:
         new_id = get_id()
         if not (network is None):
             self.NN = network
-            self.NN.id = new_id
         elif creature_type == PREY:
             self.NN = PreyNetwork.PreyNetwork(hyperparameters, new_id)
         elif creature_type == PREDATOR:
@@ -115,8 +112,6 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         Run in the terminal:
             python3 main.py --name "<a descriptive name for the serialization file>"
     """
-    if name is not None:
-        print(f"Starting experiment set: {name}")
     experiments = []
     previous_experiment = DEFAULT_EXPERIMENT
     max_max_sim_time = previous_experiment[MAX_SIM_SECONDS]
@@ -129,7 +124,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         # COMMENT THE FOLLOWING LINE WHEN NOT TESTING
         # experiment[MAX_SIM_SECONDS] = 30
         
-        experiment[PREY_HYPERPARAMS_NAME]["loss_mode"] = prey_loss_mode  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
+        #experiment[PREY_HYPERPARAMS_NAME]["loss_mode"] = RECIPROCAL_MODE  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
         
         # Modify experiment parameters
         # In these experiments we're starting the creatures off with low energy so they can learn what it means.
@@ -148,7 +143,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
     
     experiment_results = []
     for i in range(len(experiments)):
-        print(f"{('Experiment set ' + name + ': ') if name is not None else ''}Starting experiment {i + 1}")
+        print(f"Starting experiment {i + 1}")
         experiment = experiments[i]
         #print("Experiment details:\n\t" + "Max sim seconds: " + str(experiment[MAX_SIM_SECONDS]))
         
@@ -159,20 +154,14 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         
         running = True
         
-        if i == 0:
-            if default_prey_network is not None:
-                default_prey_network = default_prey_network(experiment[PREY_HYPERPARAMS_NAME], None)
-            if default_predator_network is not None:
-                default_predator_network = default_predator_network(experiment[PREDATOR_HYPERPARAMS_NAME], None)
-        
         # Currently specified relative to the manually-set default x and y in <>__PARAMS in Globals
         num_preys = experiment[ENV_PARAMS_NAME]["num_preys"]
         num_predators = experiment[ENV_PARAMS_NAME]["num_predators"]
-        models = [(copy.deepcopy(experiment[PREY_PARAMS_NAME]), Model(PREY, copy.deepcopy(experiment[PREY_ATTRS_NAME]), experiment[PREY_HYPERPARAMS_NAME], network=default_prey_network if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREY][j % len(experiment_results[i - 1][PREY])]["NETWORK"])) for j in range(num_preys)] +\
-                 [(copy.deepcopy(experiment[PREDATOR_PARAMS_NAME]), Model(PREDATOR, copy.deepcopy(experiment[PREDATOR_ATTRS_NAME]), experiment[PREDATOR_HYPERPARAMS_NAME], network=default_predator_network if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREDATOR][j % len(experiment_results[i - 1][PREDATOR])]["NETWORK"])) for j in range(num_predators)]
+        models = [(copy.deepcopy(experiment[PREY_PARAMS_NAME]), Model(PREY, copy.deepcopy(experiment[PREY_ATTRS_NAME]), experiment[PREY_HYPERPARAMS_NAME], network=None if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREY][j % len(experiment_results[i - 1][PREY])]["NETWORK"])) for j in range(num_preys)] +\
+                 [(copy.deepcopy(experiment[PREDATOR_PARAMS_NAME]), Model(PREDATOR, copy.deepcopy(experiment[PREDATOR_ATTRS_NAME]), experiment[PREDATOR_HYPERPARAMS_NAME], network=None if ((not experiment[KEEP_WEIGHTS]) or (i == 0)) else experiment_results[i - 1][PREDATOR][j % len(experiment_results[i - 1][PREDATOR])]["NETWORK"])) for j in range(num_predators)]
         #print("ATTRS from model\n\n" + str(models[3][1].sight_range) + "\n\n")
         
-        env = Environment.Environment(experiment[ENV_PARAMS_NAME], models, experiment_set_name=name)
+        env = Environment.Environment(experiment[ENV_PARAMS_NAME], models)
         
         screen_width = env.screen_width
         screen_height = env.screen_height

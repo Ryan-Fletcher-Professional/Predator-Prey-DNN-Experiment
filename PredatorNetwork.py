@@ -8,7 +8,7 @@ from Globals import *
 import Networks
 
 
-class PredatorNetwork():
+class PredatorNetwork(Networks.CreatureFullyConnectedShallow):
     def __init__(self, hyperparameters, self_id):
         super().__init__(hyperparameters)
         self.id = self_id
