@@ -32,7 +32,7 @@ else:
 DTYPE = np.float64
 PRINT_PROGRESS_STEPS = math.inf
 PRINT_EVAL_STEPS = 10
-SHOW_LOSS_PLOTS = True
+SHOW_LOSS_PLOTS = False
 SHOW_END_PLOTS = True
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False
 FOCUS_CREATURE = 0  # Index in environment.creatures

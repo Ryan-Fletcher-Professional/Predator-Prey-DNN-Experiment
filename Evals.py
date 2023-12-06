@@ -9,13 +9,17 @@ import argparse
 import numpy as np
 from Globals import *
 import Loader
+
+# From https://stackoverflow.com/questions/49880700/tensorflow-omp-error-15-when-training
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
     
 
 parser = argparse.ArgumentParser(description='Process the .pkl filename.')
-parser.add_argument('filename', type=str, help='Name of the .pkl file to load')
+parser.add_argument('--filename', type=str, help='Name of the .pkl file to load')
 args = parser.parse_args()
 
-experiments = Loader.LoadPlaintext(args.filename)  # CHANGE THIS METHOD CALL APPROPRIATELY
+experiments = Loader.LoadPickled(args.filename)  # CHANGE THIS METHOD CALL APPROPRIATELY
 
 end_reason_counts = {}
 end_reason_plots = {}
