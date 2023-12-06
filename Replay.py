@@ -49,7 +49,6 @@ for experiment in experiments:
         for creature, color in zip(preys + predators, ([GREEN] * len(preys)) + ([RED] * len(predators))):
             try:
                 position = creature["POSITIONS"][time]
-                print(position)
                 try:
                     direction = creature["DIRECTIONS"][time]
                 except:
@@ -69,7 +68,7 @@ for experiment in experiments:
                 pygame.draw.circle(screen, color if alive else GRAY, bulge_position.astype(int), bulge_size)
             except Exception as e:
                 dead += 1
-                print(e)
+                #print(e)
         if dead >= len(preys) + len(predators):
             running = False
         
