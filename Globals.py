@@ -3,7 +3,7 @@ import numpy as np
 import pyautogui as ag
 
 
-DRAW = True
+DRAW = False
 ALLOW_PREDATOR_ENERGY_DEATH = True
 DEFAULT_STORE_CREATURE_POSITIONS = math.inf
 FIRST = "FIRST"
@@ -31,7 +31,7 @@ else:
     DEFAULT_SCREEN_HEIGHT = __override_noscale_size[2]
 DTYPE = np.float64
 PRINT_PROGRESS_STEPS = math.inf
-PRINT_EVAL_STEPS = 100
+PRINT_EVAL_STEPS = 10
 SHOW_LOSS_PLOTS = True
 SHOW_END_PLOTS = True
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False

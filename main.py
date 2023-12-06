@@ -125,7 +125,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         # COMMENT THE FOLLOWING LINE WHEN NOT TESTING
         # experiment[MAX_SIM_SECONDS] = 30
         
-        #experiment[PREY_HYPERPARAMS_NAME]["loss_mode"] = RECIPROCAL_MODE  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
+        experiment[PREY_HYPERPARAMS_NAME]["loss_mode"] = prey_loss_mode  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
         
         # Modify experiment parameters
         # In these experiments we're starting the creatures off with low energy so they can learn what it means.
