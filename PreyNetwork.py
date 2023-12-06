@@ -28,6 +28,10 @@ class PreyNetwork(Networks.CreatureVeryDeepFullyConnectedWithDropout):
     
     def loss(self, state_info):
         creature_states = filter(FILTER_IN_PERCEIVED_PREDATOR_DICTS, state_info["creature_states"])
+        self_position = np.array([-1.0, -1.0])
+        for state in state_info["creature_states"]:
+            if state["id"] == self.id:
+                self_position = state["position"]
         if self.print_state:
             print(f"\nState info for {self.id}:\n\t{state_info['creature_states']}")
         closest = { "distance" : self.max_distance, "relative_speed_x" : 0, "relative_speed_y" : 0 }  # Instantiated dynamically according to creature's sight range
@@ -44,8 +48,12 @@ class PreyNetwork(Networks.CreatureVeryDeepFullyConnectedWithDropout):
             if self.print_loss:
                 print(f"\nLoss for {self.id}:\n\t{r}")
             return r
-        elif self.loss_mode == BIASED_SUBTRACT_MODE:
-            relative_speed = (closest["relative_speed_x"]**2 * (-1 if closest["relative_speed_x"] < 0 else 1)) + (closest["relative_speed_y"]**2 * (-1 if closest["relative_speed_y"] < 0 else 1))
+        elif self.loss_mode == BIASED_SUBTRACT_MODE:  # Written by Advait Gosai, modified by Ryan Fletcher
+            dif = closest["relative_speed_x"] + closest["relative_speed_y"]
+            theta = ANGLE_BETWEEN(self_position, closest["position"])
+            relative_speed = np.linalg.norm(np.sin((np.pi / 2) - theta) * dif)  # NEEDS TESTING, but pretty sure it's correct
+            # sign = (closest["relative_speed_x"] + closest["relative_speed_y"]) / abs(closest["relative_speed_x"] + closest["relative_speed_y"])
+            # relative_speed = sign * math.sqrt((closest["relative_speed_x"] ** 2) + (closest["relative_speed_y"] ** 2))
             bias = (self.max_distance / 20) * (1 - (relative_speed / self.max_velocity))
             r = torch.tensor(-closest["distance"] + self.max_distance + bias, requires_grad=True)
             if self.print_loss:

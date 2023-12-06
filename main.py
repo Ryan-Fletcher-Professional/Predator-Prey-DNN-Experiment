@@ -87,6 +87,7 @@ class Model:
                 "type"              : state["type"],
                 "perceived_type"    : perceived_type,
                 "distance"          : distance / self.creature.sight_range,
+                "position"          : state["position"],
                 "relative_speed_x"  : relative_speed_x,
                 "relative_speed_y"  : relative_speed_y,
                 "id"                : state["id"],
