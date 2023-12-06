@@ -9,11 +9,25 @@ parser.add_argument('--filename', type=str, help='Name of the .pkl file to load'
 parser.add_argument('--tick_delay', type=int, default=0, help="Optional number of ticks to skip between position updates")
 parser.add_argument('--update_skip', type=int, default=0, help="Optional number of position updates to skip each tick")
 parser.add_argument('--start_time', type=int, default=0, help="Optional number of ticks to ignore before beginning display")
+parser.add_argument('--display_exps', type=str, default="ALL", help="Optional argument of which experiments to display (# counts from 0): #,#,#,#,...,# or #: or :# or #:# or ALL")
 args = parser.parse_args()
 
 experiments = Loader.LoadPickled(args.filename)  # CHANGE THIS METHOD CALL APPROPRIATELY
 
-for experiment in experiments:
+disps_str = args.display_exps
+disps = []
+if disps_str == "ALL":
+    disps = [i for i in range(len(experiments))]
+elif ':' in disps_str:
+    idx = disps_str.find(':')
+    start = int(disps_str[0:idx]) if idx > 0 else 0
+    end = int(disps_str[idx + 1:]) if idx < len(disps_str) - 1 else len(experiments)
+    disps = [i for i in range(max(0, start), min(len(experiments), end))]
+else:
+    disps = list(map(lambda x : int(x), disps_str.split(',')))
+
+for i in disps:
+    experiment = experiments[i]
     screen_width = DEFAULT_ENVIRONMENT_PARAMETERS["screen_width"]
     screen_height = DEFAULT_ENVIRONMENT_PARAMETERS["screen_height"]
     try:
