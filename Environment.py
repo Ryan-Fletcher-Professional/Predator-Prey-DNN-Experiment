@@ -294,6 +294,7 @@ class Environment:
             creature.model.creature = creature
             creature.model.environment = self
             creature.model.NN.max_distance = (float)(creature.sight_range)  # Convert to float for tensor typing compatibility
+            creature.model.NN.max_velocity = (float)(creature.max_velocity)
         if USE_MULTIPROCESSING:
             self.task_queue = multiprocessing.Queue()
             self.inputs_queue = multiprocessing.Queue()
