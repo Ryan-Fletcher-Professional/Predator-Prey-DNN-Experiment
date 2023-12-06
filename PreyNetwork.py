@@ -8,7 +8,7 @@ from Globals import *
 import Networks
 
 
-class PreyNetwork():
+class PreyNetwork(Networks.CreatureFullyConnectedShallow):
     def __init__(self, hyperparameters, self_id):
         super().__init__(hyperparameters)
         self.loss_mode = hyperparameters.get("loss_mode", DEFAULT_PREY_LOSS_MODE)

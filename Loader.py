@@ -43,7 +43,9 @@ def LoadPlaintext(filename):
             positions_end = exp_str.find("}", positions_index)
             prey["LOSSES"] = list(map(lambda x : float(x), exp_str[loss_index:loss_end][1:-1].split(',')))
             positions_index +=  len("POSITIONS\':")
-            prey["POSITIONS"] = list(map(lambda x : np.array(list(map(lambda y : float(y), x[5:][1:-1][1:-1].split(',')))), exp_str[positions_index:positions_end][1:-1].split(',array')))
+            units = exp_str[positions_index:positions_end][1:-1].split(',array')
+            units[0] = units[0][5:]
+            prey["POSITIONS"] = list(map(lambda x : np.array(list(map(lambda y : float(y), x[1:-1][1:-1].split(',')))), units))
             preys.append(prey)
             last_index = positions_end
             
@@ -64,7 +66,9 @@ def LoadPlaintext(filename):
             #print("positions end: " + str(positions_end))
             predator["LOSSES"] = list(map(lambda x : float(x), exp_str[loss_index:loss_end][1:-1].split(',')))
             positions_index +=  len("POSITIONS\':")
-            predator["POSITIONS"] = list(map(lambda x : np.array(list(map(lambda y : float(y), x[5:][1:-1][1:-1].split(',')))), exp_str[positions_index:positions_end][1:-1].split(',array')))
+            units = exp_str[positions_index:positions_end][1:-1].split(',array')
+            units[0] = units[0][5:]
+            predator["POSITIONS"] = list(map(lambda x : np.array(list(map(lambda y : float(y), x[1:-1][1:-1].split(',')))), units))
             predators.append(predator)
             last_index = positions_end
         experiment["PREYS"] = preys
@@ -73,4 +77,6 @@ def LoadPlaintext(filename):
         experiment["num_predators"] = len(predators)
         experiments.append(experiment)
     
+    with open("test.txt", "w") as fileeee:
+        fileeee.write(str(experiments[0]["PREYS"][0]["POSITIONS"]))
     return experiments

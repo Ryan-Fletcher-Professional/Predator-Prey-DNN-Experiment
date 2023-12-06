@@ -59,6 +59,8 @@ class Creature:
         self.max_store_positions = params["store_positions"][0]
         self.store_positions_reference = params["store_positions"][1]
         self.positions = []
+        self.directions = []
+        self.alives = []
         self.mass = attrs["mass"]
         self.size = attrs["size"]
         self.max_forward_force = attrs["max_forward_force"]
@@ -133,6 +135,7 @@ class Creature:
         for ray in self.rays:
             ray.angle = (ray.angle + (self.rotation_speed * delta_time)) % (2 * np.pi)
         self.direction = (self.direction + (self.rotation_speed * delta_time)) % (2 * np.pi)
+        self.directions.append(self.direction)
     
     def apply_force(self, force, delta_time, self_motivated=True):
         """
@@ -209,7 +212,7 @@ class Creature:
         self.motion_total += np.linalg.norm(self.position - old_position)
         if self.max_store_positions > 0:
             if not ((self.store_positions_reference == FIRST) and (len(self.positions) >= self.max_store_positions)):
-                self.positions.append(self.position)
+                self.positions.append(np.array(self.position))
         if (self.store_positions_reference == RECENT) and (len(self.positions) > self.max_store_positions):
             self.positions.pop(0)
     
@@ -217,6 +220,7 @@ class Creature:
         for ray in self.rays:
             ray.cast(screen, self.sight_range, color=WHITE if self.alive else BACKGROUND_COLOR)
         pygame.draw.circle(screen, CREATURE_COLORS[self.model.type] if self.alive else GRAY, self.position.astype(int), self.size)
+        self.alives.append(True if self.alive else False)
         bulge_radius = DEFAULT_CREATURE_SIZE
         bulge_position = self.position + ANGLE_TO_VEC(self.direction) * bulge_radius
         # Draw the bulge as a smaller circle or an arc
@@ -255,6 +259,8 @@ class Creature:
         results = { "NETWORK" : self.model.NN, "LOSSES" : losses }
         if DEFAULT_STORE_CREATURE_POSITIONS > 0:
             results["POSITIONS"] = self.positions
+            results["DIRECTIONS"] = self.directions
+            results["ALIVES"] = self.alives
         if self.model.type == PREDATOR:
             results["PREYS_EATEN"] = self.preys_eaten
         # Add more analytics
@@ -423,7 +429,6 @@ class Environment:
         if self.steps % PRINT_PROGRESS_STEPS == 0:
             current_real_time = time.time()
             print(f"{'' if self.experiment_set_name is None else (self.experiment_set_name + ': ')}Step # {self.steps}:\n\tSimulation time: {(self.time / 1000):.3f}s\n\tReal time: {(current_real_time - self.start_real_time):.3f}s\n\tTotal motions: {[creature.motion_total for creature in self.creatures]}")
-
         return SUCCESSFUL_STEP
     
     def get_state_info(self):

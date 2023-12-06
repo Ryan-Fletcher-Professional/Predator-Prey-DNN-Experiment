@@ -121,7 +121,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
     previous_experiment = DEFAULT_EXPERIMENT
     max_max_sim_time = previous_experiment[MAX_SIM_SECONDS]
     ALLOW_PREDATOR_ENERGY_DEATH = new_allow_energy_death  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
-    for i in range(100):
+    for i in range(5):
         #############################################################################################################
         experiment = copy.deepcopy(previous_experiment)
         #############################################################################################################
@@ -253,6 +253,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         results["sim_time"] = env.time
         results["end_reason"] = end_reason
         results[PREY] = [ creature.get_results() for creature in filter(FILTER_IN_PREY_OBJECTS, env.creatures) ]
+        print([creature.get_results() for creature in filter(FILTER_IN_PREY_OBJECTS, env.creatures[0:2])])
         results[PREDATOR] = [ creature.get_results() for creature in filter(FILTER_IN_PREDATOR_OBJECTS, env.creatures) ]
         experiment_results.append(results)
         
@@ -303,8 +304,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     network_names = ["Shallow", "3-Layer", "DeepDropout", "VeryDeep", "VeryDeepDropout"]
-    network_classes = [(types.new_class("ModularShallowPrey",
-                                        (PreyNetwork.PreyNetwork, Networks.CreatureFullyConnectedShallow)),
+    network_classes = [(None,
                         types.new_class("ModularShallowPredator",
                                         (PredatorNetwork.PredatorNetwork, Networks.CreatureFullyConnectedShallow))),
                        (types.new_class("Modular3LayerPrey",
