@@ -30,7 +30,7 @@ class PreyNetwork(Networks.CreatureFullyConnectedShallow):
         creature_states = filter(FILTER_IN_PERCEIVED_PREDATOR_DICTS, state_info["creature_states"])
         if self.print_state:
             print(f"\nState info for {self.id}:\n\t{state_info['creature_states']}")
-        closest = { "distance" : self.max_distance }  # Instantiated dynamically according to creature's sight range
+        closest = { "distance" : self.max_distance, "relative_speed_x" : 0, "relative_speed_y" : 0 }  # Instantiated dynamically according to creature's sight range
         for creature in creature_states:
             if creature["distance"] < closest["distance"]:
                 closest = creature
@@ -40,7 +40,14 @@ class PreyNetwork(Networks.CreatureFullyConnectedShallow):
                 print(f"\nLoss for {self.id}:\n\t{r}")
             return r
         elif self.loss_mode == SUBTRACT_MODE:
-            r = torch.tensor(-closest["distance"], requires_grad=True)
+            r = torch.tensor(-closest["distance"] + self.max_distance, requires_grad=True)
+            if self.print_loss:
+                print(f"\nLoss for {self.id}:\n\t{r}")
+            return r
+        elif self.loss_mode == BIASED_SUBTRACT_MODE:
+            relative_speed = (closest["relative_speed_x"]**2 * (-1 if closest["relative_speed_x"] < 0 else 1)) + (closest["relative_speed_y"]**2 * (-1 if closest["relative_speed_y"] < 0 else 1))
+            bias = (self.max_distance / 20) * (1 - (relative_speed / self.max_velocity))
+            r = torch.tensor(-closest["distance"] + self.max_distance + bias, requires_grad=True)
             if self.print_loss:
                 print(f"\nLoss for {self.id}:\n\t{r}")
             return r
