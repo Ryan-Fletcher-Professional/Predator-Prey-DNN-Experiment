@@ -18,7 +18,7 @@ __noscale_size_coefficient = 10
 DEFAULT_CREATURE_SIZE = 10
 PLACEMENT_BUFFER = 2
 DEFAULT_NUM_TOTAL_CREATURES = 6
-__override_noscale_size = (True, 1200, 1200)
+__override_noscale_size = (True, 600, 600)
 
 if __scale_to_window_size:
     DEFAULT_SCREEN_WIDTH = __width * __draw_size_coefficient
@@ -100,11 +100,11 @@ DEFAULT_PREY_ATTRS = {
     "mass"                      : 2.5,
     "size"                      : DEFAULT_CREATURE_SIZE,
     "max_forward_force"         : 3 / 1000,
-    "max_backward_force"        : 0.75 / 1000,  # 3.0
-    "max_lr_force"              : 0.25 / 1000,  # 2.0
+    "max_backward_force"        : 3.0 / 1000,
+    "max_lr_force"              : 2.0 / 1000,
     "max_rotate_force"          : 10 / 1000,
     "max_speed"                 : 30 / 1000,
-    "max_rotate_speed"          : 2 * np.pi * (12 / 12) / 1000,  # Normaly 8/12
+    "max_rotate_speed"          : 2 * np.pi * (8 / 12) / 1000,
     "force_energy_quotient"     : 1,
     "rotation_energy_quotient"  : .01 / (2 * math.pi)
 }
@@ -125,8 +125,8 @@ DEFAULT_PREDATOR_ATTRS = {
     "mass"                      : 5,
     "size"                      : DEFAULT_CREATURE_SIZE,
     "max_forward_force"         : 3.5 / 1000,
-    "max_backward_force"        : 0.5 / 1000,  # 3.0
-    "max_lr_force"              : 0.5 / 1000,  # 1.5
+    "max_backward_force"        : 3.0 / 1000,
+    "max_lr_force"              : 1.5 / 1000,
     "max_rotate_force"          : 11.5 / 1000,
     "max_speed"                 : 30 / 1000,
     "max_rotate_speed"          : 2 * np.pi * (9 / 12) / 1000,
@@ -305,7 +305,7 @@ EXPERIMENT_DICTS = [DEFAULT_PREY_ATTRS, DEFAULT_PREY_PARAMS, DEFAULT_PREY_NETWOR
 KEEP_WEIGHTS = "KEEP_WEIGHTS"
 MAX_SIM_SECONDS = "MAX_SIM_SECONDS"
 DEFAULT_EXPERIMENT = { **{ label : dictionary for label, dictionary in zip(EXPERIMENT_LABELS, EXPERIMENT_DICTS) },
-                       **{ KEEP_WEIGHTS : True, MAX_SIM_SECONDS : 600 } }  # 100
+                       **{ KEEP_WEIGHTS : True, MAX_SIM_SECONDS : 100 } }
 
 
 def NORMALIZE(v):
