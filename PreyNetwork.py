@@ -51,6 +51,7 @@ class PreyNetwork(Networks.CreatureVeryDeepFullyConnectedWithDropout):
             if self.print_loss:
                 print(f"\nLoss for {self.id}:\n\t{loss}")
         elif self.loss_mode == BIASED_SUBTRACT_MODE:  # Written by Advait Gosai, modified by Ryan Fletcher
+            # DOES NOT WORK, DO NOT USE
             dif = closest["relative_speed_x"] + closest["relative_speed_y"]
             theta = ANGLE_BETWEEN(self_position, closest["position"])
             relative_speed = np.linalg.norm(np.sin((np.pi / 2) - theta) * dif)  # NEEDS TESTING, but pretty sure it's correct
