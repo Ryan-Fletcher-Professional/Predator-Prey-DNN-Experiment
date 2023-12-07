@@ -31,7 +31,7 @@ else:
     DEFAULT_SCREEN_HEIGHT = __override_noscale_size[2]
 DTYPE = np.float64
 PRINT_PROGRESS_STEPS = math.inf
-PRINT_EVAL_STEPS = 100
+PRINT_EVAL_STEPS = 10
 SHOW_LOSS_PLOTS = True
 SHOW_END_PLOTS = True
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False
@@ -169,7 +169,7 @@ DEFAULT_ENVIRONMENT_PARAMETERS = {  # These mostly shouldn't need to change
 
 DEFAULT_SELF_INPUTS = ["stun", "energy"]
 DEFAULT_OTHER_INPUTS = ["relative_speed_x", "relative_speed_y", "perceived_type", "distance", "relative_angle"]
-DEFAULT_OUTPUT_DIM = 4
+DEFAULT_OUTPUT_DIM = 3
 
 
 INPUT_DIM_PREY = len(DEFAULT_SELF_INPUTS) + (len(DEFAULT_OTHER_INPUTS) * DEFAULT_ENVIRONMENT_PARAMETERS["num_predators"])

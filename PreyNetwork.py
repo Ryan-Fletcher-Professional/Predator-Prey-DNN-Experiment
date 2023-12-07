@@ -43,7 +43,7 @@ class PreyNetwork(Networks.CreatureVeryDeepFullyConnectedWithDropout):
         
         loss = None
         if self.loss_mode == RECIPROCAL_MODE:
-            loss = torch.tensor(1.0 / closest["distance"], requires_grad=True)
+            loss = torch.tensor(self.max_distance / closest["distance"], requires_grad=True)
             if self.print_loss:
                 print(f"\nLoss for {self.id}:\n\t{loss}")
         elif self.loss_mode == SUBTRACT_MODE:

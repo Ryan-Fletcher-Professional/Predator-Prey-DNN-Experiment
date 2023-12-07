@@ -118,7 +118,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
     previous_experiment = DEFAULT_EXPERIMENT
     max_max_sim_time = previous_experiment[MAX_SIM_SECONDS]
     ALLOW_PREDATOR_ENERGY_DEATH = new_allow_energy_death  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
-    for i in range(500):
+    for i in range(100):
         #############################################################################################################
         experiment = copy.deepcopy(previous_experiment)
         #############################################################################################################
@@ -137,7 +137,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         experiment[PREDATOR_ATTRS_NAME]["sight_range"] = int((min(experiment[ENV_PARAMS_NAME]["screen_width"], experiment[ENV_PARAMS_NAME]["screen_height"]) * (2.0 / 3.0)) - max(experiment[PREY_ATTRS_NAME]["size"], experiment[PREDATOR_ATTRS_NAME]["size"]))
         #experiment[ENV_PARAMS_NAME]["screen_width"] = min(DEFAULT_SCREEN_WIDTH, 300 * ((i / 4.0) + 1))
         #experiment[ENV_PARAMS_NAME]["screen_height"] = min(DEFAULT_SCREEN_HEIGHT, 300 * ((i / 4.0) + 1))
-        experiment[MAX_SIM_SECONDS] = min(max_max_sim_time, int((max_max_sim_time * 1.04) / (1 + math.exp(-(i - 50) / 15))))  # CHECK WHEN CHANGING DEFAULT MAX SIM TIME
+        experiment[MAX_SIM_SECONDS] = max_max_sim_time#min(max_max_sim_time, int((max_max_sim_time * 1.04) / (1 + math.exp(-(i - 50) / 15))))  # CHECK WHEN CHANGING DEFAULT MAX SIM TIME
         #############################################################################################################
         experiments.append(experiment)
         previous_experiment = experiment
