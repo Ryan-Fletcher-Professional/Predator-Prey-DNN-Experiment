@@ -61,6 +61,7 @@ for i, exp in enumerate(experiments):
             row, col = divmod(j, 2)
             if j < len(preds):
                 axs[row, col].plot(preds[j]["LOSSES"])
+                axs[row, col].set_title(f"Predator {j+1}")
                 axs[row, col].set_xlabel("Iteration")
                 axs[row, col].set_ylabel("Losses")
         plt.tight_layout(pad=3.0)
