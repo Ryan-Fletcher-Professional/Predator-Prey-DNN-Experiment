@@ -118,7 +118,7 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
     previous_experiment = DEFAULT_EXPERIMENT
     max_max_sim_time = previous_experiment[MAX_SIM_SECONDS]
     ALLOW_PREDATOR_ENERGY_DEATH = new_allow_energy_death  # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< THIS IS ONE EXPERIMENT MODE FLAG!
-    for i in range(100):
+    for i in range(500):
         #############################################################################################################
         experiment = copy.deepcopy(previous_experiment)
         #############################################################################################################
@@ -131,8 +131,8 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         # Modify experiment parameters
         # In these experiments we're starting the creatures off with low energy so they can learn what it means.
         # We're also starting with a smaller screen size so loss values are bigger early on to encourage learning control.
-        experiment[PREY_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.09, i))  # Should hit 100 at the 55th experiment
-        experiment[PREDATOR_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.09, i))  # Should hit 100 at the 55th experiment
+        experiment[PREY_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.03, i))  # Should hit 100 at the 55th experiment
+        experiment[PREDATOR_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.03, i))  # Should hit 100 at the 55th experiment
         experiment[PREY_ATTRS_NAME]["sight_range"] = int(0.75 * ((min(experiment[ENV_PARAMS_NAME]["screen_width"], experiment[ENV_PARAMS_NAME]["screen_height"]) * (2.0 / 3.0)) - max(experiment[PREY_ATTRS_NAME]["size"], experiment[PREDATOR_ATTRS_NAME]["size"])))
         experiment[PREDATOR_ATTRS_NAME]["sight_range"] = int((min(experiment[ENV_PARAMS_NAME]["screen_width"], experiment[ENV_PARAMS_NAME]["screen_height"]) * (2.0 / 3.0)) - max(experiment[PREY_ATTRS_NAME]["size"], experiment[PREDATOR_ATTRS_NAME]["size"]))
         #experiment[ENV_PARAMS_NAME]["screen_width"] = min(DEFAULT_SCREEN_WIDTH, 300 * ((i / 4.0) + 1))
