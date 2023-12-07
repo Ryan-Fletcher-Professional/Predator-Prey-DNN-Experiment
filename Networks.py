@@ -49,13 +49,14 @@ class CreatureNetwork:
         
         scores = model(input)
         loss = self.loss(state_info)
+        closest_dist = None
         try:
             loss, closest_dist = loss
         except TypeError:
             pass
         
         # Adjust learning rate dynamically so that creatures learn less during the long periods of time when they spend
-        if ADJUST_LEARNING_RATE_WITH_DISTANCE:
+        if ADJUST_LEARNING_RATE_WITH_DISTANCE and (closest_dist is not None):
             # Very high (caps at 2x around <=~33% of max distance) when fairly close, drops fast when distance approaches max
             new_lr = self.base_lr * min(2, max(self.min_lr, np.log((-2 * (closest_dist / self.max_distance)) + 2.25) + 1.5))
             for g in self.optimizer.param_groups:
