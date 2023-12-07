@@ -293,20 +293,8 @@ if __name__ == "__main__":
     parser.add_argument("--serialize", type=str, help="Optional argument", default="True")
     args = parser.parse_args()
     
-    network_names = ["VERY_DEEP_DROPOUT_NETWORK_5_NOENERGY_RECIPROCAL",
-                     "VERY_DEEP_DROPOUT_NETWORK_5_YESENERGY_SUBTRACT",
-                     "VERY_DEEP_DROPOUT_NETWORK_5_NOENERGY_SUBTRACT",
-                     "VERY_DEEP_DROPOUT_NETWORK_1_NOENERGY_RECIPROCAL",
-                     "VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_SUBTRACT",
-                     "VERY_DEEP_DROPOUT_NETWORK_1_NOENERGY_SUBTRACT",
-                     "VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_RECIPROCAL"]
-    network_hyper_hyper_params = [VERY_DEEP_DROPOUT_NETWORK_5_NOENERGY_RECIPROCAL,
-                                  VERY_DEEP_DROPOUT_NETWORK_5_YESENERGY_SUBTRACT,
-                                  VERY_DEEP_DROPOUT_NETWORK_5_NOENERGY_SUBTRACT,
-                                  VERY_DEEP_DROPOUT_NETWORK_1_NOENERGY_RECIPROCAL,
-                                  VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_SUBTRACT,
-                                  VERY_DEEP_DROPOUT_NETWORK_1_NOENERGY_SUBTRACT,
-                                  VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_RECIPROCAL]
+    network_names = ["VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_RECIPROCAL"]
+    network_hyper_hyper_params = [VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_RECIPROCAL]
     for name, network in zip(network_names, network_hyper_hyper_params):
         DEFAULT_PREY_NETWORK_HYPERPARAMETERS["dimensions"] = network[0]
         DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"] = network[1]

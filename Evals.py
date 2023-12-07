@@ -42,8 +42,14 @@ for i, exp in enumerate(experiments):
     # Intermediate plotting and printing for specific intervals
     if ((i % PRINT_EVAL_STEPS == 0) or (i == len(experiments) - 1)) and SHOW_LOSS_PLOTS:
         print(f"EXPERIMENT {i + 1}")
-        preds = exp["PREDATORS"]
-        preys = exp["PREYS"]
+        try:
+            preds = exp["PREDATORS"]
+        except KeyError:
+            preds = exp[PREDATOR]
+        try:
+            preys = exp["PREYS"]
+        except KeyError:
+            preys = exp[PREY]
         print(f"num_predators: {len(preds)}, num_preys: {len(preys)}")
         print(f"sim_time: {exp['sim_time']}")
         print(f"end_reason: {exp['end_reason']}")

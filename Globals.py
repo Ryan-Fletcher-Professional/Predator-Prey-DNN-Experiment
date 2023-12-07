@@ -31,8 +31,8 @@ else:
     DEFAULT_SCREEN_HEIGHT = __override_noscale_size[2]
 DTYPE = np.float64
 PRINT_PROGRESS_STEPS = math.inf
-PRINT_EVAL_STEPS = 10
-SHOW_LOSS_PLOTS = False
+PRINT_EVAL_STEPS = 100
+SHOW_LOSS_PLOTS = True
 SHOW_END_PLOTS = True
 ALWAYS_OVERRIDE_PREY_MOVEMENT = False
 FOCUS_CREATURE = 0  # Index in environment.creatures
@@ -138,7 +138,7 @@ DEFAULT_PREDATOR_PARAMS = {
     "x"                 : (DEFAULT_SCREEN_WIDTH // 2) - 150,
     "y"                 : (DEFAULT_SCREEN_HEIGHT // 2) - 150,
     "initial_direction" : 0.0,
-    "initial_energy"    : 75.0,
+    "initial_energy"    : 25.0,
     "store_positions"   : (DEFAULT_STORE_CREATURE_POSITIONS, DEFAULT_STORE_CREATURE_POSITIONS_REFERENCE),
     "DTYPE"             : DTYPE
 }
