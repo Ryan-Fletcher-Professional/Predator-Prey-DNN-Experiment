@@ -38,4 +38,4 @@ class PredatorNetwork(Networks.CreatureVeryDeepFullyConnectedWithDropout):
         r = torch.tensor(closest["distance"], requires_grad=True)
         if self.print_loss:
             print(f"\nLoss for {self.id}:\n\t{r}")
-        return r
+        return r, closest["distance"]
