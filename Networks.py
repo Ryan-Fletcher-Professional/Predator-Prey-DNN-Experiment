@@ -48,7 +48,11 @@ class CreatureNetwork:
         model = model.to(device=device)  # move the model parameters to CPU/GPU
         
         scores = model(input)
-        loss, closest_dist = self.loss(state_info)
+        loss = self.loss(state_info)
+        try:
+            loss, closest_dist = loss
+        except TypeError:
+            pass
         
         # Adjust learning rate dynamically so that creatures learn less during the long periods of time when they spend
         if ADJUST_LEARNING_RATE_WITH_DISTANCE:
