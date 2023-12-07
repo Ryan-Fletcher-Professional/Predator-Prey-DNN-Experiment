@@ -131,13 +131,13 @@ def main(serialize=True, name=None, new_allow_energy_death=ALLOW_PREDATOR_ENERGY
         # Modify experiment parameters
         # In these experiments we're starting the creatures off with low energy so they can learn what it means.
         # We're also starting with a smaller screen size so loss values are bigger early on to encourage learning control.
-        experiment[PREY_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.02, i))  # Should hit 100 at the 233rd experiment #1.09, i))  # Should hit 100 at the 55th experiment
-        experiment[PREDATOR_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.02, i))  # Should hit 100 at the 233rd experiment #1.09, i))  # Should hit 100 at the 55th experiment
+        experiment[PREY_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.09, i))  # Should hit 100 at the 55th experiment
+        experiment[PREDATOR_PARAMS_NAME]["initial_energy"] = min(100, math.pow(1.09, i))  # Should hit 100 at the 55th experiment
         experiment[PREY_ATTRS_NAME]["sight_range"] = int(0.75 * ((min(experiment[ENV_PARAMS_NAME]["screen_width"], experiment[ENV_PARAMS_NAME]["screen_height"]) * (2.0 / 3.0)) - max(experiment[PREY_ATTRS_NAME]["size"], experiment[PREDATOR_ATTRS_NAME]["size"])))
         experiment[PREDATOR_ATTRS_NAME]["sight_range"] = int((min(experiment[ENV_PARAMS_NAME]["screen_width"], experiment[ENV_PARAMS_NAME]["screen_height"]) * (2.0 / 3.0)) - max(experiment[PREY_ATTRS_NAME]["size"], experiment[PREDATOR_ATTRS_NAME]["size"]))
         #experiment[ENV_PARAMS_NAME]["screen_width"] = min(DEFAULT_SCREEN_WIDTH, 300 * ((i / 4.0) + 1))
         #experiment[ENV_PARAMS_NAME]["screen_height"] = min(DEFAULT_SCREEN_HEIGHT, 300 * ((i / 4.0) + 1))
-        experiment[MAX_SIM_SECONDS] = min(max_max_sim_time, int((max_max_sim_time * 1.04) / (1 + math.exp(-(i - 150) / 30))))  # 50/15  # CHECK WHEN CHANGING DEFAULT MAX SIM TIME
+        experiment[MAX_SIM_SECONDS] = min(max_max_sim_time, int((max_max_sim_time * 1.04) / (1 + math.exp(-(i - 50) / 15))))  # CHECK WHEN CHANGING DEFAULT MAX SIM TIME
         #############################################################################################################
         experiments.append(experiment)
         previous_experiment = experiment
@@ -307,10 +307,10 @@ if __name__ == "__main__":
                                   VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_SUBTRACT,
                                   VERY_DEEP_DROPOUT_NETWORK_1_NOENERGY_SUBTRACT,
                                   VERY_DEEP_DROPOUT_NETWORK_1_YESENERGY_RECIPROCAL]
-    # for name, network in zip(network_names, network_hyper_hyper_params):
-    #     DEFAULT_PREY_NETWORK_HYPERPARAMETERS["dimensions"] = network[0]
-    #     DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"] = network[1]
-    #     main(name=(args.name + "_" if args.name is not None else "") + name, new_allow_energy_death=network[2], prey_loss_mode=network[3])
-    DEFAULT_PREY_NETWORK_HYPERPARAMETERS["dimensions"] = network_hyper_hyper_params[6][0]
-    DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"] = network_hyper_hyper_params[6][1]
-    main(name=(args.name + "_" if args.name is not None else "") + network_names[6], new_allow_energy_death=network_hyper_hyper_params[6][2], prey_loss_mode=network_hyper_hyper_params[6][3])
+    for name, network in zip(network_names, network_hyper_hyper_params):
+        DEFAULT_PREY_NETWORK_HYPERPARAMETERS["dimensions"] = network[0]
+        DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"] = network[1]
+        main(name=(args.name + "_" if args.name is not None else "") + name, new_allow_energy_death=network[2], prey_loss_mode=network[3])
+    # DEFAULT_PREY_NETWORK_HYPERPARAMETERS["dimensions"] = network_hyper_hyper_params[6][0]
+    # DEFAULT_PREDATOR_NETWORK_HYPERPARAMETERS["dimensions"] = network_hyper_hyper_params[6][1]
+    # main(name=(args.name + "_" if args.name is not None else "") + network_names[6], new_allow_energy_death=network_hyper_hyper_params[6][2], prey_loss_mode=network_hyper_hyper_params[6][3])
