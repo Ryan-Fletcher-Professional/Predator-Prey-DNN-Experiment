@@ -16,7 +16,4 @@ Instructions for experimentation:
     
     Cook, cool, and serve
 
-    
-
-https://github.com/advaitgosai/682-pred-prey-nn/assets/66398068/57858f23-1405-4c18-8b6b-cadc13c926b2
-
+See "Example.mp4" and "Predator Prey Final Presentation.mp4"
